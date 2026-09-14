@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Analytics Admin — AI Engineering Knowledge Agent</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">ADMIN ANALYTICS</p>
+        <h1>وضعیت استفاده و شکاف‌های دانش</h1>
+        <p class="subtitle">توکن فقط در حافظه همین صفحه استفاده می‌شود و در مرورگر ذخیره نمی‌شود.</p>
+      </div>
+    </header>
+
+    <section class="card ask-card">
+      <form id="analytics-form">
+        <label for="token">Admin Token</label>
+        <input id="token" type="password" autocomplete="off" required
+          style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc" />
+        <label for="days" style="margin-top:14px">بازه</label>
+        <select id="days"
+          style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+          <option value="7">۷ روز</option>
+          <option value="30" selected>۳۰ روز</option>
+          <option value="90">۹۰ روز</option>
+        </select>
+        <div class="actions">
+          <button class="primary" type="submit">نمایش گزارش</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="analytics-error" class="card error hidden"></section>
+    <section id="analytics-result" class="hidden">
+      <section id="summary-cards" class="sources" style="margin-top:18px"></section>
+
+      <section class="card sources-card">
+        <p class="section-label">کانال‌ها</p>
+        <div id="channels" class="sources"></div>
+      </section>
+
+      <section class="card sources-card">
+        <p class="section-label">سؤال‌های پرتکرار</p>
+        <div id="top-questions" class="sources"></div>
+      </section>
+
+      <section class="card sources-card">
+        <p class="section-label">شکاف‌های دانش / بدون شواهد</p>
+        <div id="missing-topics" class="sources"></div>
+      </section>
+
+      <section class="card sources-card">
+        <p class="section-label">پاسخ‌های کم‌اطمینان</p>
+        <div id="low-confidence" class="sources"></div>
+      </section>
+    </section>
+  </main>
+  <script src="/admin.js" defer></script>
+</body>
+</html>
