@@ -1,9 +1,10 @@
 import type { Env } from "./env";
-import { error, json, readJson, requireAdmin } from "./http";
+import { error, json, preflight, readJson, requireAdmin } from "./http";
 import { getSource, setSourceStatus, upsertSource, type SourceInput, type SourceStatus } from "./catalog";
 import { completeVersion, ingestChunkBatch, startVersion, type PreparedChunk } from "./ingestion";
 import { searchKnowledge } from "./search";
 import { answerQuestion, type AskRequest } from "./agent";
+import { saveFeedback, type FeedbackInput } from "./feedback";
 
 function sourcePath(pathname: string, suffix: string) {
   const m = pathname.match(new RegExp("^/admin/sources/([^/]+)/" + suffix + "$"));
@@ -14,6 +15,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
       const url = new URL(request.url);
+
+      if (request.method === "OPTIONS") {
+        return preflight();
+      }
 
       if (request.method === "GET" && url.pathname === "/health") {
         return json({
@@ -34,6 +39,20 @@ export default {
         }
 
         return json(await answerQuestion(env, { ...body, question }));
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/v1/feedback") {
+        const body = await readJson<FeedbackInput>(request);
+        const requestId = String(body.request_id ?? "").trim();
+        if (!requestId) return error("request_id is required");
+        if (typeof body.helpful !== "boolean") return error("helpful must be boolean");
+
+        return json(await saveFeedback(env, {
+          request_id: requestId,
+          helpful: body.helpful,
+          comment: body.comment ?? null,
+          channel: body.channel ?? "web"
+        }), 201);
       }
 
       if (url.pathname.startsWith("/admin/")) {
