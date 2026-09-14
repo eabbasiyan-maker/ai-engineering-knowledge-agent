@@ -126,3 +126,60 @@ document.getElementById("prepare").addEventListener("click", async () => {
     showError(error instanceof Error ? error.message : "خطای ناشناخته");
   }
 });
+
+
+uploadBtn.addEventListener("click", async () => {
+  clearError();
+
+  try {
+    if (!prepared) throw new Error("اول فایل را آماده‌سازی کن.");
+
+    const token = tokenEl.value.trim();
+    if (!token) throw new Error("Admin Token را وارد کن.");
+
+    showStatus("شروع Version…");
+    await startVersion(
+      token,
+      prepared.sourceId,
+      prepared.versionId,
+      prepared.checksum
+    );
+
+    const batchSize = 16;
+
+    for (let i = 0; i < prepared.chunks.length; i += batchSize) {
+      const batch = prepared.chunks.slice(i, i + batchSize);
+
+      showStatus(
+        "ارسال Chunkها — " +
+        Math.min(i + batch.length, prepared.chunks.length) +
+        " از " + prepared.chunks.length
+      );
+
+      await uploadChunks(
+        token,
+        prepared.sourceId,
+        prepared.versionId,
+        batch
+      );
+    }
+
+    showStatus("فعال‌سازی نسخه جدید…");
+    const result = await completeVersion(
+      token,
+      prepared.sourceId,
+      prepared.versionId
+    );
+
+    summaryBody.textContent +=
+      "\n\n✅ Ingestion complete" +
+      "\nActive chunks: " + result.chunkCount +
+      "\nText store: " + result.textStore;
+
+    uploadBtn.disabled = true;
+    hideStatus();
+  } catch (error) {
+    hideStatus();
+    showError(error instanceof Error ? error.message : "خطای ناشناخته");
+  }
+});
