@@ -27,23 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm install --ignore-scripts
 
-      - name: Ensure Pages project exists
-        shell: bash
-        run: |
-          EXISTS="$(npx wrangler pages project list --json | node -e '
-            let s="";
-            process.stdin.on("data", d => s += d);
-            process.stdin.on("end", () => {
-              const rows = JSON.parse(s);
-              const found = rows.some(x => x.name === process.env.PAGES_PROJECT);
-              process.stdout.write(found ? "yes" : "no");
-            });
-          ')"
-
-          if [ "$EXISTS" != "yes" ]; then
-            npx wrangler pages project create "$PAGES_PROJECT" --production-branch main
-          fi
-
       - name: Deploy website
         run: |
           npx wrangler pages deploy web             --project-name "$PAGES_PROJECT"             --branch main             --commit-hash "$GITHUB_SHA"             --commit-message "GitHub Actions deploy"
