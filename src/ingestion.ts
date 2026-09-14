@@ -64,16 +64,21 @@ export async function ingestChunkBatch(
   for (let i = 0; i < chunks.length; i++) {
     const c = chunks[i];
     const r2Key = `processed/${sourceId}/${versionId}/chunks/${c.chunk_id}.txt`;
+    const storageKey = env.KNOWLEDGE_R2 ? r2Key : `d1://knowledge_chunks/${c.chunk_id}`;
 
-    await env.KNOWLEDGE_R2.put(r2Key, c.text, {
-      httpMetadata: { contentType: "text/plain; charset=utf-8" },
-      customMetadata: {
-        source_id: sourceId,
-        version_id: versionId,
-        chunk_id: c.chunk_id,
-        content_hash: c.content_hash
-      }
-    });
+    // D1 is the MVP operational text store. R2, when enabled later,
+    // receives the same derivative text as an optimization/archive layer.
+    if (env.KNOWLEDGE_R2) {
+      await env.KNOWLEDGE_R2.put(r2Key, c.text, {
+        httpMetadata: { contentType: "text/plain; charset=utf-8" },
+        customMetadata: {
+          source_id: sourceId,
+          version_id: versionId,
+          chunk_id: c.chunk_id,
+          content_hash: c.content_hash
+        }
+      });
+    }
 
     vectorRecords.push({
       id: c.chunk_id,
@@ -92,9 +97,9 @@ export async function ingestChunkBatch(
       env.DB.prepare(
         `INSERT INTO knowledge_chunks (
           chunk_id, source_id, version_id, chapter, section, heading_path,
-          chunk_index, content_hash, token_count, status, r2_text_key,
-          vector_id, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, CURRENT_TIMESTAMP)
+          chunk_index, content_hash, token_count, status, content_text,
+          r2_text_key, vector_id, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, CURRENT_TIMESTAMP)
         ON CONFLICT(chunk_id) DO UPDATE SET
           version_id=excluded.version_id,
           chapter=excluded.chapter,
@@ -104,6 +109,7 @@ export async function ingestChunkBatch(
           content_hash=excluded.content_hash,
           token_count=excluded.token_count,
           status='active',
+          content_text=excluded.content_text,
           r2_text_key=excluded.r2_text_key,
           vector_id=excluded.vector_id,
           updated_at=CURRENT_TIMESTAMP`
@@ -117,7 +123,8 @@ export async function ingestChunkBatch(
         c.index,
         c.content_hash,
         c.token_count ?? null,
-        r2Key,
+        c.text,
+        storageKey,
         c.chunk_id
       )
     );
@@ -126,7 +133,10 @@ export async function ingestChunkBatch(
   await env.VECTORIZE.upsert(vectorRecords);
   await env.DB.batch(dbStatements);
 
-  return { inserted: chunks.length };
+  return {
+    inserted: chunks.length,
+    text_store: env.KNOWLEDGE_R2 ? "d1+r2" : "d1"
+  };
 }
 
 export async function completeVersion(
@@ -142,6 +152,25 @@ export async function completeVersion(
 
   if (!count?.count) throw new Error("Cannot activate an empty source version");
 
+  const manifest = {
+    schemaVersion: "1.1",
+    sourceId,
+    versionId,
+    chunkCount: count.count,
+    textStore: env.KNOWLEDGE_R2 ? "d1+r2" : "d1",
+    completedAt: new Date().toISOString()
+  };
+
+  let manifestKey: string | null = null;
+  if (env.KNOWLEDGE_R2) {
+    manifestKey = `processed/${sourceId}/${versionId}/manifest.json`;
+    await env.KNOWLEDGE_R2.put(
+      manifestKey,
+      JSON.stringify(manifest, null, 2),
+      { httpMetadata: { contentType: "application/json; charset=utf-8" } }
+    );
+  }
+
   await env.DB.batch([
     env.DB.prepare(
       `UPDATE source_versions
@@ -155,9 +184,15 @@ export async function completeVersion(
     ).bind(sourceId, versionId),
     env.DB.prepare(
       `UPDATE source_versions
-       SET status='active', activated_at=CURRENT_TIMESTAMP
+       SET status='active', activated_at=CURRENT_TIMESTAMP,
+           r2_manifest_key=?, manifest_json=?
        WHERE source_id = ? AND version_id = ?`
-    ).bind(sourceId, versionId),
+    ).bind(
+      manifestKey,
+      JSON.stringify(manifest),
+      sourceId,
+      versionId
+    ),
     env.DB.prepare(
       `UPDATE sources
        SET status = CASE
@@ -169,22 +204,6 @@ export async function completeVersion(
        WHERE source_id = ?`
     ).bind(sourceId)
   ]);
-
-  const manifestKey = `processed/${sourceId}/${versionId}/manifest.json`;
-  const manifest = {
-    schemaVersion: "1.0",
-    sourceId,
-    versionId,
-    chunkCount: count.count,
-    completedAt: new Date().toISOString()
-  };
-  await env.KNOWLEDGE_R2.put(manifestKey, JSON.stringify(manifest, null, 2), {
-    httpMetadata: { contentType: "application/json; charset=utf-8" }
-  });
-
-  await env.DB.prepare(
-    "UPDATE source_versions SET r2_manifest_key = ? WHERE version_id = ?"
-  ).bind(manifestKey, versionId).run();
 
   return manifest;
 }
