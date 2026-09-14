@@ -150,6 +150,14 @@ function ensureInlineCitation(answer: string, sourceCount: number) {
   return trimmed + " [S1]";
 }
 
+function citedSourceLabels(answer: string) {
+  const labels = new Set<string>();
+  for (const match of answer.matchAll(/\[(S\d+)\]/g)) {
+    labels.add(match[1]);
+  }
+  return labels;
+}
+
 function parseModelJson(raw: unknown) {
   const obj = raw as any;
   const choiceContent = obj?.choices?.[0]?.message?.content;
@@ -294,14 +302,23 @@ ${context}`;
     chosen.length
   );
 
+  const citedLabels = citedSourceLabels(groundedAnswer);
+  const citedMatches = chosen.filter((_, index) =>
+    citedLabels.has(`S${index + 1}`)
+  );
+  const visibleSources = sources.filter((source) => citedLabels.has(source.id));
+
   return {
     request_id: requestId,
     channel,
     answer: groundedAnswer,
     evidence_status: evidenceStatus,
     conflict_summary: parsed.conflict_summary,
-    confidence: confidenceFor(chosen, evidenceStatus),
-    sources,
+    confidence: confidenceFor(
+      citedMatches.length ? citedMatches : chosen,
+      evidenceStatus
+    ),
+    sources: visibleSources.length ? visibleSources : sources.slice(0, 1),
     retrieval: {
       retrieved: rawMatches.length,
       eligible: ranked.length,
