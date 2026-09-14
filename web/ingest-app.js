@@ -89,6 +89,9 @@ document.getElementById("prepare").addEventListener("click", async () => {
     const checksum = await sha256Hex(extracted.bytes);
     const rawChunks = chunkText(extracted.text);
     const chunks = [];
+    const chunkPrefix = versionId.startsWith(sourceId + "-")
+      ? versionId
+      : sourceId + "-" + versionId;
 
     for (let i = 0; i < rawChunks.length; i++) {
       const item = rawChunks[i];
@@ -97,7 +100,7 @@ document.getElementById("prepare").addEventListener("click", async () => {
       }
 
       chunks.push({
-        chunk_id: sourceId + "-" + versionId + "-C" + String(i + 1).padStart(5, "0"),
+        chunk_id: chunkPrefix + "-C" + String(i + 1).padStart(5, "0"),
         index: i,
         chapter: item.chapter,
         section: item.section,
