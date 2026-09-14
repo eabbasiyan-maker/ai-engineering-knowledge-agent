@@ -1,6 +1,6 @@
 import type { Env } from "./env";
 import { error, json, preflight, readJson, requireAdmin } from "./http";
-import { getSource, setSourceStatus, upsertSource, type SourceInput, type SourceStatus } from "./catalog";
+import { getSource, listSources, setSourceStatus, upsertSource, type SourceInput, type SourceStatus } from "./catalog";
 import { completeVersion, ingestChunkBatch, startVersion, type PreparedChunk } from "./ingestion";
 import { searchKnowledge } from "./search";
 import { answerQuestion, type AskRequest } from "./agent";
@@ -93,6 +93,10 @@ export default {
       if (request.method === "GET" && url.pathname === "/admin/analytics/summary") {
         const days = Number(url.searchParams.get("days") ?? "30");
         return json(await getAnalyticsSummary(env, days));
+      }
+
+      if (url.pathname === "/admin/sources" && request.method === "GET") {
+        return json({ sources: await listSources(env) });
       }
 
       if (request.method === "POST" && url.pathname === "/admin/sources") {
