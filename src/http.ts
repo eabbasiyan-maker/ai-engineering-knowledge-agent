@@ -3,7 +3,7 @@ import type { Env } from "./env";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Telegram-Setup-Secret",
   "Access-Control-Max-Age": "86400"
 };
 
