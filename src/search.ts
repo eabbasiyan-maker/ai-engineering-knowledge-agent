@@ -10,8 +10,10 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
   if (!vector) throw new Error("Failed to embed query");
 
   const result = await env.VECTORIZE.query(vector, {
-    topK: Math.min(Math.max(topK * 3, 12), 40),
-    returnMetadata: "all"
+    // Search a wider candidate pool because Vectorize deletions are asynchronous.
+    // D1 remains the final eligibility authority.
+    topK: Math.min(Math.max(topK * 8, 24), 100),
+    returnMetadata: "none"
   });
 
   const accepted = [];
@@ -51,6 +53,7 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
       score: match.score,
       chunk_id: row.chunk_id,
       source_id: row.source_id,
+      version_id: row.version_id,
       title: row.title,
       grade: row.grade,
       chapter: row.chapter,
