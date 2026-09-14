@@ -112,3 +112,42 @@ Before Phase 2 closes, test at least:
 - re-index it
 - replace a version
 - archive it
+
+
+## Free-tier execution decision
+
+Cloudflare Workers Free currently has a very small CPU budget per request, so heavy PDF/EPUB parsing and chunk construction must not be coupled to the public Worker request path.
+
+The MVP ingestion flow is therefore split into two parts:
+
+```text
+Private source file
+   -> local/CI preparation tool
+      -> extract PDF/EPUB
+      -> preserve headings where possible
+      -> semantic-ish chunking
+      -> SHA-256 hashes
+      -> prepared JSON (local only; gitignored)
+
+Prepared JSON
+   -> Admin Worker API in batches
+      -> Workers AI embeddings
+      -> R2 derivative chunk storage
+      -> D1 catalog/chunk metadata
+      -> Vectorize upsert
+      -> activate version after validation
+```
+
+Repository tools:
+- `scripts/prepare-source.mjs`
+- `scripts/upload-prepared.mjs`
+
+No raw PDF/EPUB and no prepared chunk payload is committed to GitHub.
+
+### Format strategy
+- PDF: prepared locally with PDF.js.
+- EPUB: unpacked locally, spine order is read from the EPUB package document, XHTML is normalized to lightweight Markdown/text, then chunked.
+- Cloudflare Markdown Conversion can be used later for PDF/HTML/XML/Office formats, but EPUB is not currently a supported direct input format.
+
+### Runtime status semantics
+Disabling or archiving a source updates D1 immediately. Search always re-checks current D1 source/version/chunk status after Vectorize returns candidates, so stale vectors cannot make a disabled source eligible for LLM context.
