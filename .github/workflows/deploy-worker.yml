@@ -1,3 +1,4 @@
+# deploy-trigger: secrets-configured
 name: Deploy Worker
 
 on:
