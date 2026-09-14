@@ -235,3 +235,28 @@ jobs:
               console.log(JSON.stringify({request_count: count}));
             });
           '
+
+
+      - name: Smoke test Worker-hosted ingestion UI
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const base = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev";
+          const checks = [
+            [base + "/ingest", "MOBILE INGESTION"],
+            [base + "/ingest-app.js", "completeVersion"],
+            [base + "/ingest-pdf.js", "/vendor/pdf.mjs"],
+            [base + "/ingest-epub.js", "/vendor/fflate.js"],
+            [base + "/vendor/fflate.js", "function"]
+          ];
+
+          for (const [url, marker] of checks) {
+            const res = await fetch(url);
+            const text = await res.text();
+            if (!res.ok || !text.includes(marker)) {
+              throw new Error("Worker UI smoke failed: " + url + " status=" + res.status);
+            }
+            console.log("OK", url);
+          }
+          NODE
