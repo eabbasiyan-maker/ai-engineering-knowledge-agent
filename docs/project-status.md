@@ -9,7 +9,7 @@
 ## Active phase
 **Phase 2 — Dynamic Library & Ingestion**
 
-Status: IN PROGRESS
+Status: IN PROGRESS — implementation complete, live Cloudflare provisioning pending
 
 ## Phase 1 result
 Initial library review is complete:
@@ -55,3 +55,26 @@ Phase 3 Agent Core does not start until Phase 2 can demonstrate:
 - re-index
 - archive
 without application redeployment.
+
+
+## Phase 2 implementation update — 2026-09-14
+Implemented:
+- Worker library-management API
+- versioned ingestion
+- Workers AI embeddings
+- Vectorize upsert and validation search
+- D1 status filtering
+- R2 derivative storage
+- PDF/EPUB local preparation
+- chunk hashing/metadata
+- batch uploader
+- D1 seed data
+- CI typecheck
+- Cloudflare provisioning runbook
+
+Remaining before Phase 2 can be closed:
+- provision live D1/R2/Vectorize
+- configure bindings/secrets
+- deploy Worker
+- ingest BOOK-002
+- verify active/disabled/re-enabled/re-indexed/archived behavior end-to-end
