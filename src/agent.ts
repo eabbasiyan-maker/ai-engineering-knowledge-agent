@@ -64,11 +64,27 @@ function rankMatches(matches: any[], minScore: number): RankedMatch[] {
     .sort((a, b) => b.rank_score - a.rank_score);
 }
 
-function buildContext(matches: RankedMatch[], maxChars = 15000) {
+function chunkOrdinal(chunkId: string) {
+  const match = chunkId.match(/C(\d+)$/);
+  return match ? Number(match[1]) : null;
+}
+
+function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
   const chosen: RankedMatch[] = [];
   let used = 0;
 
   for (const match of matches) {
+    if (chosen.length >= maxChunks) break;
+
+    const ordinal = chunkOrdinal(match.chunk_id);
+    const isNearDuplicate = chosen.some((existing) => {
+      if (existing.source_id !== match.source_id) return false;
+      const existingOrdinal = chunkOrdinal(existing.chunk_id);
+      return ordinal !== null && existingOrdinal !== null &&
+        Math.abs(ordinal - existingOrdinal) <= 1;
+    });
+    if (isNearDuplicate) continue;
+
     const text = String(match.text ?? "").trim();
     if (!text) continue;
 
@@ -217,6 +233,8 @@ Answer only from the supplied approved evidence. Do not use outside knowledge.
 Distinguish what the evidence supports from inference. If evidence is incomplete, say so.
 If supplied sources materially disagree, set conflict=true and explain the disagreement.
 Use inline citations like [S1], [S2] for factual claims.
+Answer concisely in at most 180 words.
+Avoid repetition even when evidence chunks overlap.
 Do not expose long verbatim passages; synthesize.
 Respond in the language of the user's question.
 Return JSON only with exactly:
@@ -236,14 +254,14 @@ ${context}`;
         { role: "system", content: system },
         { role: "user", content: user }
       ],
-      max_tokens: 900,
+      max_tokens: 500,
       temperature: 0.1,
       response_format: {
         type: "json_schema",
         json_schema: {
           type: "object",
           properties: {
-            answer: { type: "string" },
+            answer: { type: "string", maxLength: 2200 },
             conflict: { type: "boolean" },
             conflict_summary: { type: "string" }
           },
