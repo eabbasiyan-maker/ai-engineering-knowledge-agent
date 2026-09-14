@@ -1,0 +1,107 @@
+name: Deploy Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy-worker.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Check Cloudflare credentials
+        id: cf
+        shell: bash
+        run: |
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Cloudflare deploy skipped. Add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as GitHub Actions secrets."
+          fi
+
+      - name: Resolve D1 database id
+        if: steps.cf.outputs.ready == 'true'
+        id: d1
+        shell: bash
+        run: |
+          D1_ID="$(npx wrangler d1 list --json | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d);
+            process.stdin.on("end", () => {
+              const rows = JSON.parse(s);
+              const db = rows.find(x => x.name === "ai-knowledge-catalog");
+              if (!db) {
+                console.error("D1 database ai-knowledge-catalog not found");
+                process.exit(2);
+              }
+              const id = db.uuid || db.id || db.database_id;
+              if (!id) {
+                console.error("D1 database id missing from wrangler output");
+                process.exit(3);
+              }
+              process.stdout.write(id);
+            });
+          ')"
+          echo "database_id=$D1_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Generate deploy config
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        env:
+          D1_DATABASE_ID: ${{ steps.d1.outputs.database_id }}
+        run: |
+          cat > wrangler.deploy.jsonc <<EOF
+          {
+            "name": "ai-engineering-knowledge-agent",
+            "main": "src/index.ts",
+            "compatibility_date": "2026-09-14",
+            "workers_dev": true,
+            "vars": {
+              "EMBEDDING_MODEL": "@cf/baai/bge-m3"
+            },
+            "d1_databases": [
+              {
+                "binding": "DB",
+                "database_name": "ai-knowledge-catalog",
+                "database_id": "$D1_DATABASE_ID"
+              }
+            ],
+            "vectorize": [
+              {
+                "binding": "VECTORIZE",
+                "index_name": "ai-knowledge-index"
+              }
+            ],
+            "ai": {
+              "binding": "AI"
+            }
+          }
+          EOF
+
+      - name: Deploy Worker
+        if: steps.cf.outputs.ready == 'true'
+        run: npx wrangler deploy --config wrangler.deploy.jsonc
