@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+prepared/
+staging/
+*.pdf
+*.epub
+*.docx
+*.zip
+.DS_Store
