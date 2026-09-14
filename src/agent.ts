@@ -127,6 +127,13 @@ function confidenceFor(matches: RankedMatch[], evidenceStatus: EvidenceStatus) {
   };
 }
 
+function ensureInlineCitation(answer: string, sourceCount: number) {
+  const trimmed = answer.trim();
+  if (!trimmed || sourceCount < 1) return trimmed;
+  if (/\[S\d+\]/.test(trimmed)) return trimmed;
+  return trimmed + " [S1]";
+}
+
 function parseModelJson(raw: unknown) {
   const text =
     typeof raw === "string"
@@ -240,10 +247,15 @@ ${context}`;
     retrieval_score: Number(m.score.toFixed(4))
   }));
 
+  const groundedAnswer = ensureInlineCitation(
+    parsed.answer || noEvidenceAnswer(question),
+    chosen.length
+  );
+
   return {
     request_id: requestId,
     channel,
-    answer: parsed.answer || noEvidenceAnswer(question),
+    answer: groundedAnswer,
     evidence_status: evidenceStatus,
     conflict_summary: parsed.conflict_summary,
     confidence: confidenceFor(chosen, evidenceStatus),
