@@ -1,0 +1,32 @@
+openapi: 3.1.0
+info:
+  title: AI Engineering Knowledge Agent API
+  version: 1.0.0
+servers:
+  - url: https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev
+paths:
+  /api/v1/ask:
+    post:
+      operationId: askKnowledgeAgent
+      summary: Ask the central AI engineering knowledge agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question, channel]
+              properties:
+                question:
+                  type: string
+                channel:
+                  type: string
+                  enum: [gpt]
+                top_k:
+                  type: integer
+                  minimum: 3
+                  maximum: 12
+                  default: 8
+      responses:
+        "200":
+          description: Grounded answer with evidence status, confidence, and sources.
