@@ -228,7 +228,7 @@ ${question}
 Approved evidence:
 ${context}`;
 
-  const model = env.GENERATION_MODEL || "@cf/zai-org/glm-4.7-flash";
+  const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
   const generated = await env.AI.run(
     model as any,
     {
@@ -236,8 +236,20 @@ ${context}`;
         { role: "system", content: system },
         { role: "user", content: user }
       ],
-      max_tokens: 1200,
-      temperature: 0.2
+      max_tokens: 900,
+      temperature: 0.1,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          type: "object",
+          properties: {
+            answer: { type: "string" },
+            conflict: { type: "boolean" },
+            conflict_summary: { type: "string" }
+          },
+          required: ["answer", "conflict", "conflict_summary"]
+        }
+      }
     } as any
   ) as any;
 
