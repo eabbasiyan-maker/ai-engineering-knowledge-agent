@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "eval/**"
+      - "src/**"
       - "scripts/eval-live.mjs"
       - ".github/workflows/evaluation.yml"
       - "package.json"
