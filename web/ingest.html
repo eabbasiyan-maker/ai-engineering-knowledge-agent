@@ -57,8 +57,25 @@
     </section>
 
     <section id="error-box" class="card error hidden"></section>
+  <section class="card ask-card" style="margin-top:18px">
+      <p class="eyebrow">BATCH READY BUNDLE</p>
+      <h2>ورود گروهی کتاب‌های آماده‌شده</h2>
+      <p class="subtitle">یک فایل ZIP آماده‌شده را انتخاب کن تا چند کتاب پشت‌سرهم وارد و فعال شوند.</p>
+
+      <label for="batch-file">Prepared ZIP</label>
+      <input id="batch-file" type="file" accept=".zip,application/zip"
+        style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+
+      <div class="actions">
+        <button id="batch-upload" class="primary" type="button">ورود گروهی</button>
+      </div>
+
+      <div id="batch-status" class="answer-text hidden" style="margin-top:16px"></div>
+      <div id="batch-error" class="error hidden" style="margin-top:16px"></div>
+    </section>
   </main>
 
   <script type="module" src="/ingest-app.js"></script>
+  <script type="module" src="/ingest-batch.js"></script>
 </body>
 </html>
