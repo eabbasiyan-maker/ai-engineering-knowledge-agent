@@ -56,25 +56,29 @@ Phase 3 Agent Core does not start until Phase 2 can demonstrate:
 - archive
 without application redeployment.
 
+## Phase 2 live infrastructure verification — 2026-09-14
+Verified from the Cloudflare provisioning session:
+- D1 database `ai-knowledge-catalog`: created
+- Vectorize index `ai-knowledge-index`: created, 1024 dimensions, cosine
+- R2 bucket `ai-knowledge-processed`: BLOCKED — account requires R2 subscription activation
+- Phase 2 Worker: not deployed
+- `knowledge_chunks`: 0
+- BOOK-002 lifecycle evidence: not yet available
 
-## Phase 2 implementation update — 2026-09-14
-Implemented:
-- Worker library-management API
-- versioned ingestion
-- Workers AI embeddings
-- Vectorize upsert and validation search
-- D1 status filtering
-- R2 derivative storage
-- PDF/EPUB local preparation
-- chunk hashing/metadata
-- batch uploader
-- D1 seed data
-- CI typecheck
-- Cloudflare provisioning runbook
+Local validation reported by Codex:
+- Typecheck: pass
+- Wrangler dry-run: pass
+- Whitespace validation: pass
 
-Remaining before Phase 2 can be closed:
-- provision live D1/R2/Vectorize
-- configure bindings/secrets
-- deploy Worker
-- ingest BOOK-002
-- verify active/disabled/re-enabled/re-indexed/archived behavior end-to-end
+Current Phase 2 status:
+**BLOCKED ON R2 ACCOUNT ACTIVATION**
+
+Do not close Phase 2 until:
+1. R2 is activated and bucket creation succeeds.
+2. Worker is deployed with D1/R2/Vectorize/Workers AI bindings.
+3. Schema and seed are applied to live D1.
+4. BOOK-002 is ingested.
+5. Search + disable + re-enable + re-index/version-swap + archive exclusion are verified end-to-end.
+
+Security note:
+Cloudflare account/resource UUIDs are intentionally not recorded in this public repository.
