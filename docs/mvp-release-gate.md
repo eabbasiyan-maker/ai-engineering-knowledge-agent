@@ -27,7 +27,7 @@ The MVP is releasable only when all mandatory gates pass.
    - The answer must surface the disagreement instead of silently choosing a side.
 
 6. Channel parity
-   - Web, Telegram, GPT, and direct API must use the same Agent Core and central knowledge base.
+   - Web, Telegram, and direct API must use the same Agent Core and central knowledge base.
    - Evidence status and source semantics must remain consistent across channels.
 
 7. Reliability
@@ -46,5 +46,9 @@ The MVP is releasable only when all mandatory gates pass.
 
 - Add explicit hallucination-focused cases.
 - Add a real conflicting-source case after at least two active sources cover the same claim.
-- Complete end-to-end Shared GPT parity test.
 - Expand retrieval relevance judgments beyond source-level checks to chunk-level support.
+
+
+## Scope note
+- Shared GPT is deferred by product decision and is not a current MVP release blocker.
+- Its readiness artifacts remain preserved for later activation.
