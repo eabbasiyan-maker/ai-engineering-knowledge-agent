@@ -7,7 +7,7 @@ import { answerQuestion, type AskRequest } from "./agent";
 import { saveFeedback, type FeedbackInput } from "./feedback";
 import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
 import { reviewCandidate } from "./curator";
-import { handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
+import { getTelegramHealth, handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
 
@@ -118,6 +118,10 @@ export default {
           service: "ai-engineering-knowledge-agent",
           phase: 5
         });
+      }
+
+      if (request.method === "GET" && url.pathname === "/health/telegram") {
+        return json(await getTelegramHealth(env));
       }
 
       if (request.method === "POST" && url.pathname === "/api/v1/ask") {
