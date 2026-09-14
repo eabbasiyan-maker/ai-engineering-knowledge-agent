@@ -98,6 +98,46 @@ export function verifyTelegramWebhook(request: Request, env: Env) {
   return provided === env.TELEGRAM_WEBHOOK_SECRET;
 }
 
+export function verifyTelegramSetupSecret(request: Request, env: Env) {
+  if (!env.TELEGRAM_WEBHOOK_SECRET) return false;
+  const provided = request.headers.get("x-telegram-setup-secret") ?? "";
+  return provided === env.TELEGRAM_WEBHOOK_SECRET;
+}
+
+export async function configureTelegramWebhook(env: Env) {
+  if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_WEBHOOK_SECRET) {
+    throw new Error("Telegram secrets are not configured");
+  }
+
+  const webhookUrl =
+    "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev/api/v1/telegram/webhook";
+
+  const me = await telegramApi(env, "getMe", {});
+  await telegramApi(env, "setWebhook", {
+    url: webhookUrl,
+    secret_token: env.TELEGRAM_WEBHOOK_SECRET,
+    allowed_updates: ["message"],
+    drop_pending_updates: true
+  });
+
+  const info = await telegramApi(env, "getWebhookInfo", {});
+  const result = info?.result ?? {};
+
+  return {
+    ok: result.url === webhookUrl,
+    bot: {
+      id: me?.result?.id ?? null,
+      username: me?.result?.username ?? null,
+      first_name: me?.result?.first_name ?? null
+    },
+    webhook: {
+      url: result.url ?? null,
+      pending_update_count: result.pending_update_count ?? 0,
+      last_error_message: result.last_error_message ?? null
+    }
+  };
+}
+
 export async function handleTelegramUpdate(env: Env, update: TelegramUpdate) {
   const message = update.message;
   if (!message) return;
