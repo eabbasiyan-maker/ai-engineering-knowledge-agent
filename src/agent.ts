@@ -19,6 +19,7 @@ type RankedMatch = {
   version_id?: string;
   title: string;
   grade: string;
+  reference_score?: number | null;
   chapter?: string | null;
   section?: string | null;
   text: string;
@@ -50,11 +51,14 @@ function rankMatches(matches: any[], minScore: number): RankedMatch[] {
     .filter((m) => Number(m.score ?? 0) >= minScore)
     .map((m) => {
       const vectorScore = Number(m.score ?? 0);
-      const authority = gradeAuthority[String(m.grade ?? "")] ?? 0.5;
+      const gradeWeight = gradeAuthority[String(m.grade ?? "")] ?? 0.5;
+      const referenceScore = Number(m.reference_score ?? 50) / 100;
+      const authority = gradeWeight * 0.6 + referenceScore * 0.4;
       return {
         ...m,
         score: vectorScore,
-        rank_score: vectorScore * 0.9 + authority * 0.1
+        reference_score: Number(m.reference_score ?? 0),
+        rank_score: vectorScore * 0.88 + authority * 0.12
       } as RankedMatch;
     })
     .sort((a, b) => b.rank_score - a.rank_score);
@@ -84,6 +88,7 @@ function buildContext(matches: RankedMatch[], maxChars = 15000) {
       `source_id: ${m.source_id}`,
       `title: ${m.title}`,
       `grade: ${m.grade}`,
+      `reference_score: ${m.reference_score ?? ""}`,
       `version_id: ${m.version_id ?? ""}`,
       `location: ${location || "not specified"}`,
       `retrieval_score: ${m.score.toFixed(4)}`,
@@ -105,9 +110,11 @@ function confidenceFor(matches: RankedMatch[], evidenceStatus: EvidenceStatus) {
   }
 
   const top = matches[0].score;
-  const authority = gradeAuthority[matches[0].grade] ?? 0.5;
+  const gradeWeight = gradeAuthority[matches[0].grade] ?? 0.5;
+  const referenceScore = Number(matches[0].reference_score ?? 50) / 100;
+  const authority = gradeWeight * 0.6 + referenceScore * 0.4;
   const supportBonus = Math.min(matches.length, 4) * 0.025;
-  const raw = clamp(top * 0.75 + authority * 0.2 + supportBonus, 0, 0.95);
+  const raw = clamp(top * 0.72 + authority * 0.23 + supportBonus, 0, 0.95);
 
   let level: "low" | "medium" | "high" = "low";
   if (raw >= 0.72) level = "high";
@@ -224,6 +231,7 @@ ${context}`;
     version_id: m.version_id ?? null,
     title: m.title,
     grade: m.grade,
+    reference_score: m.reference_score ?? null,
     chapter: m.chapter ?? null,
     section: m.section ?? null,
     chunk_id: m.chunk_id,
