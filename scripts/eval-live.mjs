@@ -50,14 +50,37 @@ for (const test of cases) {
       errors.push("no_evidence response returned sources");
     }
 
+    const answerText = String(body.answer ?? "");
+
     if (
       test.requires_inline_citation &&
-      !/\[S\d+\]/.test(String(body.answer ?? ""))
+      !/\[S\d+\]/.test(answerText)
     ) {
       errors.push("missing inline citation");
     }
 
-    const answerLower = String(body.answer ?? "").toLowerCase();
+    const citationLabels = [];
+    for (const match of answerText.matchAll(/\[(S\d+)\]/g)) {
+      citationLabels.push(match[1]);
+    }
+
+    const returnedLabels = Array.isArray(body.sources)
+      ? body.sources.map((source) => source.id)
+      : [];
+
+    for (const label of citationLabels) {
+      if (!returnedLabels.includes(label)) {
+        errors.push("citation missing source metadata: " + label);
+      }
+    }
+
+    for (const label of returnedLabels) {
+      if (!citationLabels.includes(label)) {
+        errors.push("uncited source metadata returned: " + label);
+      }
+    }
+
+    const answerLower = answerText.toLowerCase();
     for (const term of test.required_answer_terms) {
       if (!answerLower.includes(String(term).toLowerCase())) {
         errors.push("missing answer term " + term);
