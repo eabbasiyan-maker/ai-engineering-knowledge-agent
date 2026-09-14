@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-knowledge.local/schemas/source-catalog.schema.json",
+  "title": "SourceCatalogItem",
+  "type": "object",
+  "required": [
+    "sourceId",
+    "title",
+    "grade",
+    "status",
+    "originalLocation"
+  ],
+  "properties": {
+    "sourceId": { "type": "string" },
+    "title": { "type": "string" },
+    "author": { "type": ["string", "null"] },
+    "publisher": { "type": ["string", "null"] },
+    "year": { "type": ["integer", "null"] },
+    "referenceScore": {
+      "type": ["integer", "null"],
+      "minimum": 0,
+      "maximum": 100
+    },
+    "grade": {
+      "enum": ["A", "B", "Supplemental", "Reject"]
+    },
+    "status": {
+      "enum": [
+        "incoming",
+        "approved",
+        "active",
+        "active_secondary",
+        "disabled",
+        "archived",
+        "rejected"
+      ]
+    },
+    "seed": { "type": "boolean" },
+    "topics": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "originalLocation": {
+      "type": "object",
+      "required": ["provider", "fileId"],
+      "properties": {
+        "provider": { "const": "google-drive" },
+        "fileId": { "type": "string" },
+        "folder": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
