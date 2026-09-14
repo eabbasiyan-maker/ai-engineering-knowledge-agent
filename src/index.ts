@@ -19,7 +19,8 @@ const UI_PATHS = new Set([
   "/ingest-utils.js",
   "/ingest-pdf.js",
   "/ingest-epub.js",
-  "/ingest-api.js"
+  "/ingest-api.js",
+  "/ingest-batch.js"
 ]);
 
 async function proxyUiAsset(pathname: string): Promise<Response> {
