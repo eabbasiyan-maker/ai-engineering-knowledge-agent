@@ -1,0 +1,25 @@
+{
+  "name": "ai-engineering-knowledge-agent",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "cf:migrate": "wrangler d1 execute ai-knowledge-catalog --remote --file=db/schema.sql",
+    "cf:seed": "wrangler d1 execute ai-knowledge-catalog --remote --file=db/seed.sql",
+    "prepare": "node scripts/prepare-source.mjs",
+    "upload": "node scripts/upload-prepared.mjs"
+  },
+  "dependencies": {
+    "cheerio": "^1.1.2",
+    "fflate": "^0.8.2",
+    "pdfjs-dist": "^5.4.149"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260912.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.35.0"
+  }
+}
