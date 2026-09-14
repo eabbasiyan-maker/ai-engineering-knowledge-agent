@@ -1,5 +1,6 @@
 -- AI Engineering Knowledge Agent
--- D1 schema v1
+-- D1 schema v2
+-- MVP stores chunk text in D1 so R2 is optional, not a deployment blocker.
 
 PRAGMA foreign_keys = ON;
 
@@ -38,6 +39,7 @@ CREATE TABLE IF NOT EXISTS source_versions (
   checksum TEXT,
   status TEXT NOT NULL DEFAULT 'active',
   r2_manifest_key TEXT,
+  manifest_json TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   activated_at TEXT,
   archived_at TEXT,
@@ -69,7 +71,8 @@ CREATE TABLE IF NOT EXISTS knowledge_chunks (
   content_hash TEXT NOT NULL,
   token_count INTEGER,
   status TEXT NOT NULL DEFAULT 'active',
-  r2_text_key TEXT NOT NULL,
+  content_text TEXT NOT NULL,
+  r2_text_key TEXT,
   vector_id TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -82,6 +85,9 @@ CREATE INDEX IF NOT EXISTS idx_sources_status_grade
 
 CREATE INDEX IF NOT EXISTS idx_chunks_source_status
   ON knowledge_chunks(source_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_chunks_version_status
+  ON knowledge_chunks(version_id, status);
 
 CREATE INDEX IF NOT EXISTS idx_jobs_source_state
   ON ingestion_jobs(source_id, state);
