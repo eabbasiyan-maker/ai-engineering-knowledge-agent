@@ -91,6 +91,13 @@ export default {
         if (denied) return denied;
       }
 
+      if (request.method === "POST" && url.pathname === "/admin/curator/review") {
+        const body = await readJson<any>(request);
+        const title = String(body.title ?? "").trim();
+        if (!title) return error("title is required");
+        return json(await reviewCandidate(env, { ...body, title }));
+      }
+
       if (request.method === "GET" && url.pathname === "/admin/analytics/summary") {
         const days = Number(url.searchParams.get("days") ?? "30");
         return json(await getAnalyticsSummary(env, days));
