@@ -114,3 +114,11 @@ Security:
 
 Next step:
 Provide Wrangler with a scoped Cloudflare API token through the local execution environment (not through GitHub or chat), set `ADMIN_TOKEN`, deploy the Worker, then run BOOK-002 lifecycle validation.
+
+
+## Phase 2 deployment update — 2026-09-14
+- Worker deployed successfully.
+- URL: https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev
+- ADMIN_TOKEN secret configured.
+- Live D1 migration 0002 already applied.
+- Remaining: verify live health/schema/seed, ingest BOOK-002, and run lifecycle tests.
