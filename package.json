@@ -9,7 +9,7 @@
     "types": "wrangler types",
     "cf:migrate": "wrangler d1 execute ai-knowledge-catalog --remote --file=db/schema.sql",
     "cf:seed": "wrangler d1 execute ai-knowledge-catalog --remote --file=db/seed.sql",
-    "prepare": "node scripts/prepare-source.mjs",
+    "prepare:source": "node scripts/prepare-source.mjs",
     "upload": "node scripts/upload-prepared.mjs",
     "cf:migrate:0002": "wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0002_d1_text_store.sql"
   },
