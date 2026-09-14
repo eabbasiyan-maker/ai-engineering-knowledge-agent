@@ -49,6 +49,18 @@ Google Drive (private)
 6. Source deletion must remove or disable its corresponding searchable vectors.
 7. Unknown or unsupported claims must not be presented as sourced facts.
 
+## Non-functional constraints for MVP
+1. **Zero end-user cost:** users must not need a paid account or API key for Website/Telegram access.
+2. **No surprise billing:** architecture should remain on free tiers where practical; when a hard quota is reached, fail closed instead of silently incurring spend.
+3. **Single knowledge brain:** Web, Telegram and GPT must return from the same backend policy and knowledge state.
+4. **Evidence-first:** answers must include source metadata when knowledge is retrieved.
+5. **Safe no-evidence behavior:** unsupported questions must not be fabricated.
+6. **Admin protection:** library-management endpoints and Admin UI must require authentication even if the public chat is anonymous.
+7. **Source privacy:** raw commercial books remain private and are never exposed as public download assets.
+8. **Rebuildability:** the vector index must be reproducible from approved source artifacts and catalog metadata.
+9. **Updateability:** adding, disabling, archiving or replacing a source must not require a frontend redeploy.
+10. **Channel parity:** the same question against the same knowledge state should produce materially consistent answers across Web, Telegram and GPT.
+
 ## API baseline
 
 ```http
