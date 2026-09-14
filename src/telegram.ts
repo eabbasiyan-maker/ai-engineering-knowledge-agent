@@ -1,5 +1,6 @@
 import type { Env } from "./env";
 import { answerQuestion } from "./agent";
+import { recordAgentRequest } from "./analytics";
 
 type TelegramMessage = {
   message_id: number;
@@ -178,11 +179,22 @@ export async function handleTelegramUpdate(env: Env, update: TelegramUpdate) {
       action: "typing"
     });
 
+    const startedAt = Date.now();
     const result = await answerQuestion(env, {
       question: text,
       channel: "telegram",
       top_k: 8
     });
+
+    await recordAgentRequest(env, {
+      request_id: result.request_id,
+      channel: result.channel,
+      question: text,
+      evidence_status: result.evidence_status,
+      confidence_score: result.confidence?.score ?? null,
+      source_count: Array.isArray(result.sources) ? result.sources.length : 0,
+      latency_ms: Date.now() - startedAt
+    }).catch(() => undefined);
 
     await sendMessage(env, chatId, formatAnswer(result));
   } catch (error) {
