@@ -73,8 +73,12 @@ Deliverables:
 - Same Agent API
 - Telegram-specific output formatting
 
-## Phase 6 — Shared GPT
-Deliverables:
+## Phase 6 — Shared GPT (Deferred)
+Status:
+- Deferred by user decision on 2026-09-14
+- OpenAPI/privacy/setup artifacts preserved for later activation
+
+Deliverables when resumed:
 - GPT Action/OpenAPI schema
 - Same Agent API
 - No independent GPT knowledge upload
