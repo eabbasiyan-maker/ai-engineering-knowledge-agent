@@ -70,9 +70,12 @@ jobs:
           ')"
           echo "database_id=$D1_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Apply feedback migration
+      - name: Apply database migrations
         if: steps.cf.outputs.ready == 'true'
-        run: npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0003_answer_feedback.sql
+        shell: bash
+        run: |
+          npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0003_answer_feedback.sql
+          npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0004_agent_request_analytics.sql
 
       - name: Generate deploy config
         if: steps.cf.outputs.ready == 'true'
