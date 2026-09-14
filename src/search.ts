@@ -24,7 +24,7 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
       `SELECT
           k.chunk_id, k.source_id, k.version_id, k.chapter, k.section,
           k.content_text, k.r2_text_key,
-          s.title, s.grade, s.status, v.status AS version_status
+          s.title, s.grade, s.reference_score, s.status, v.status AS version_status
        FROM knowledge_chunks k
        JOIN sources s ON s.source_id = k.source_id
        JOIN source_versions v ON v.version_id = k.version_id
@@ -56,6 +56,7 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
       version_id: row.version_id,
       title: row.title,
       grade: row.grade,
+      reference_score: row.reference_score,
       chapter: row.chapter,
       section: row.section,
       text
