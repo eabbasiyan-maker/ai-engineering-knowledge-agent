@@ -215,3 +215,23 @@ jobs:
           }
           console.log(JSON.stringify(body, null, 2));
           NODE
+
+
+      - name: Smoke test analytics capture
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        run: |
+          sleep 2
+          npx wrangler d1 execute ai-knowledge-catalog --remote --json --command "SELECT COUNT(*) AS request_count FROM agent_requests" | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d);
+            process.stdin.on("end", () => {
+              const rows = JSON.parse(s);
+              const count = Number(rows?.[0]?.results?.[0]?.request_count ?? 0);
+              if (count < 1) {
+                console.error("analytics capture check failed");
+                process.exit(2);
+              }
+              console.log(JSON.stringify({request_count: count}));
+            });
+          '
