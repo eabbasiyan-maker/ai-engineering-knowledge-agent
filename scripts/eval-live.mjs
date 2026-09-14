@@ -94,6 +94,14 @@ for (const test of cases) {
       errors.push("missing numeric confidence");
     }
 
+    if (body.evidence_status === "supported" || body.evidence_status === "partial") {
+      for (const source of Array.isArray(body.sources) ? body.sources : []) {
+        if (Number(source.retrieval_score ?? 0) < 0.5) {
+          errors.push("cited source below relevance floor: " + source.id);
+        }
+      }
+    }
+
     if (!body.request_id) errors.push("missing request_id");
   } catch (error) {
     errors.push(error instanceof Error ? error.message : String(error));
