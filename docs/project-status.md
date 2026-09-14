@@ -2,35 +2,56 @@
 
 **Date:** 2026-09-14
 
-## Current state
-- GitHub repository: initialized
-- Google Drive master source folder: connected
-- Drive source structure: created
-  - 01-Incoming
-  - 02-Approved
-  - 03-Archived
-- Architecture baseline: locked
-- Governance baseline: locked
-- Source registry template: created
-- Phase 0 GitHub issue: completed and closed
-- MVP backlog: created as GitHub issues #1–#8
+## Completed phases
+- Phase 0 — Architecture & Governance ✅
+- Phase 1 — Source Registry ✅
 
 ## Active phase
-**Phase 1 — Source Registry**
+**Phase 2 — Dynamic Library & Ingestion**
 
-Status: READY / WAITING FOR SOURCE FILES
+Status: IN PROGRESS
+
+## Phase 1 result
+Initial library review is complete:
+- 13 unique sources reviewed
+- 6 Grade-A Seed sources
+- 5 Grade-B approved secondary sources
+- 2 Supplemental sources archived
+
+Drive state:
+- 01-Incoming: cleared after initial review batch
+- 02-Approved: active/secondary admitted sources
+- 03-Archived: non-active supplemental sources
+
+Registry:
+- catalog/sources.yaml
+- catalog/source-review-2026-09-14.md
+
+## Phase 2 completed work
+- D1 schema defined: db/schema.sql
+- R2 processed-artifact contract defined
+- Source catalog schema defined
+- Ingestion lifecycle/state machine defined
+- Replace/disable/archive/re-index semantics defined
+
+## Phase 2 next work
+1. Provision Cloudflare D1 database.
+2. Provision R2 processed-artifact bucket.
+3. Provision Vectorize index.
+4. Implement PDF/EPUB extraction.
+5. Implement chunking and metadata propagation.
+6. Implement embeddings/indexing.
+7. Run source lifecycle validation on a seed source.
 
 ## Current dependency
-The provided Google Drive master folder is accessible, but no book files are currently visible inside it or its newly created source folders.
-
-## Immediate next actions
-1. Put candidate books into `01-Incoming` (or approved books into `02-Approved`).
-2. Inventory all available sources.
-3. Detect duplicates and editions.
-4. Score and classify each source.
-5. Populate `catalog/sources.yaml`.
-6. Select the initial Seed Knowledge set.
-7. Move to Phase 2 ingestion design.
+Cloudflare runtime resources are not yet provisioned through the project. Repository work can continue, but end-to-end Phase 2 validation requires access to the target Cloudflare account/resources.
 
 ## PM rule
-Phase 2 implementation should not start until the initial source lifecycle and source registry are validated with real files.
+Phase 3 Agent Core does not start until Phase 2 can demonstrate:
+- ingest
+- retrieve/index
+- disable
+- re-enable
+- re-index
+- archive
+without application redeployment.
