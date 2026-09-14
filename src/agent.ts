@@ -193,12 +193,16 @@ function parseModelJson(raw: unknown) {
     const parsed = JSON.parse(cleaned);
     return {
       answer: String(parsed.answer ?? "").trim(),
+      evidence_status: ["supported", "partial", "no_evidence", "conflict"].includes(String(parsed.evidence_status))
+        ? String(parsed.evidence_status) as EvidenceStatus
+        : null,
       conflict: Boolean(parsed.conflict),
       conflict_summary: parsed.conflict_summary ? String(parsed.conflict_summary) : null
     };
   } catch {
     return {
       answer: cleaned,
+      evidence_status: null,
       conflict: false,
       conflict_summary: null
     };
@@ -245,8 +249,12 @@ Answer concisely in at most 180 words.
 Avoid repetition even when evidence chunks overlap.
 Do not expose long verbatim passages; synthesize.
 Respond in the language of the user's question.
+Judge whether the supplied evidence actually answers the user's question.
+If the evidence is only topically related but does not support the requested fact, use evidence_status="no_evidence".
+If only part of the answer is supported, use evidence_status="partial".
+If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
-{"answer":"string","conflict":false,"conflict_summary":null}`;
+{"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
   const user = `Question:
 ${question}
@@ -270,19 +278,53 @@ ${context}`;
           type: "object",
           properties: {
             answer: { type: "string", maxLength: 2200 },
+            evidence_status: {
+              type: "string",
+              enum: ["supported", "partial", "no_evidence", "conflict"]
+            },
             conflict: { type: "boolean" },
             conflict_summary: { type: "string" }
           },
-          required: ["answer", "conflict", "conflict_summary"]
+          required: ["answer", "evidence_status", "conflict", "conflict_summary"]
         }
       }
     } as any
   ) as any;
 
   const parsed = parseModelJson(generated);
-  const evidenceStatus: EvidenceStatus = parsed.conflict
-    ? "conflict"
-    : initialEvidenceStatus;
+
+  const modelEvidenceStatus: EvidenceStatus =
+    parsed.conflict
+      ? "conflict"
+      : parsed.evidence_status ?? initialEvidenceStatus;
+
+  const evidenceStatus: EvidenceStatus =
+    modelEvidenceStatus === "conflict"
+      ? "conflict"
+      : modelEvidenceStatus === "no_evidence"
+        ? "no_evidence"
+        : modelEvidenceStatus === "partial" || initialEvidenceStatus === "partial"
+          ? "partial"
+          : "supported";
+
+  if (evidenceStatus === "no_evidence") {
+    return {
+      request_id: requestId,
+      channel,
+      answer: noEvidenceAnswer(question),
+      evidence_status: "no_evidence" as EvidenceStatus,
+      conflict_summary: null,
+      confidence: confidenceFor([], "no_evidence"),
+      sources: [],
+      retrieval: {
+        retrieved: rawMatches.length,
+        eligible: ranked.length,
+        used: chosen.length,
+        min_score: minScore,
+        generation_model: model
+      }
+    };
+  }
 
   const sources = chosen.map((m, index) => ({
     id: `S${index + 1}`,
