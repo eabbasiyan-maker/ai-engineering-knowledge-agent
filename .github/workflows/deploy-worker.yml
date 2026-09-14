@@ -105,3 +105,67 @@ jobs:
       - name: Deploy Worker
         if: steps.cf.outputs.ready == 'true'
         run: npx wrangler deploy --config wrangler.deploy.jsonc
+
+
+      - name: Smoke test supported answer
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev/api/v1/ask";
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              question: "What are common ReAct failure modes and how can they be mitigated?",
+              channel: "api",
+              top_k: 8
+            })
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error("supported-answer HTTP " + res.status + ": " + text);
+          const body = JSON.parse(text);
+          if (!body.request_id) throw new Error("missing request_id");
+          if (!body.answer) throw new Error("missing answer");
+          if (!body.evidence_status) throw new Error("missing evidence_status");
+          if (!body.confidence) throw new Error("missing confidence");
+          if (!Array.isArray(body.sources) || body.sources.length === 0) throw new Error("missing sources");
+          if (!body.sources.some(s => s.source_id === "BOOK-002")) throw new Error("BOOK-002 not cited");
+          console.log(JSON.stringify({
+            evidence_status: body.evidence_status,
+            confidence: body.confidence,
+            sources: body.sources.map(s => ({ id: s.id, source_id: s.source_id, chunk_id: s.chunk_id })),
+            answer: body.answer
+          }, null, 2));
+          NODE
+
+      - name: Smoke test no-evidence behavior
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev/api/v1/ask";
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              question: "What is the recommended orbital insertion burn for a crewed mission to Neptune?",
+              channel: "api",
+              top_k: 8
+            })
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error("no-evidence HTTP " + res.status + ": " + text);
+          const body = JSON.parse(text);
+          if (body.evidence_status !== "no_evidence") {
+            throw new Error("expected no_evidence, got " + body.evidence_status);
+          }
+          if (!Array.isArray(body.sources) || body.sources.length !== 0) {
+            throw new Error("no-evidence response should have zero sources");
+          }
+          console.log(JSON.stringify({
+            evidence_status: body.evidence_status,
+            confidence: body.confidence,
+            answer: body.answer
+          }, null, 2));
+          NODE
