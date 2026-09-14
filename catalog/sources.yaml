@@ -1,0 +1,22 @@
+schema_version: "1.0"
+sources: []
+
+# Example:
+# - source_id: BOOK-001
+#   title: Building Reliable AI Systems
+#   author: ""
+#   publisher: ""
+#   year: 2026
+#   edition: "1"
+#   type: book
+#   topics:
+#     - reliability
+#     - agents
+#   reference_score: 0
+#   grade: pending
+#   status: incoming
+#   original_location:
+#     provider: google-drive
+#     file_id: ""
+#   added_at: ""
+#   reviewed_at: ""
