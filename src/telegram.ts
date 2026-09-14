@@ -105,6 +105,45 @@ export function verifyTelegramSetupSecret(request: Request, env: Env) {
   return provided === env.TELEGRAM_WEBHOOK_SECRET;
 }
 
+export async function getTelegramHealth(env: Env) {
+  const configured = {
+    bot_token: Boolean(env.TELEGRAM_BOT_TOKEN),
+    webhook_secret: Boolean(env.TELEGRAM_WEBHOOK_SECRET)
+  };
+
+  if (!configured.bot_token) {
+    return {
+      ok: false,
+      configured,
+      webhook: null,
+      error: "BOT_TOKEN_MISSING"
+    };
+  }
+
+  try {
+    const info = await telegramApi(env, "getWebhookInfo", {});
+    const result = info?.result ?? {};
+    return {
+      ok: configured.webhook_secret && Boolean(result.url),
+      configured,
+      webhook: {
+        url: result.url ?? null,
+        pending_update_count: result.pending_update_count ?? 0,
+        last_error_message: result.last_error_message ?? null,
+        max_connections: result.max_connections ?? null,
+        ip_address: result.ip_address ?? null
+      }
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      configured,
+      webhook: null,
+      error: error instanceof Error ? error.message : "UNKNOWN"
+    };
+  }
+}
+
 export async function configureTelegramWebhook(env: Env) {
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_WEBHOOK_SECRET) {
     throw new Error("Telegram secrets are not configured");
