@@ -5,6 +5,7 @@ import { completeVersion, ingestChunkBatch, startVersion, type PreparedChunk } f
 import { searchKnowledge } from "./search";
 import { answerQuestion, type AskRequest } from "./agent";
 import { saveFeedback, type FeedbackInput } from "./feedback";
+import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
 import { handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 function sourcePath(pathname: string, suffix: string) {
@@ -39,7 +40,22 @@ export default {
           return error("Unsupported channel");
         }
 
-        return json(await answerQuestion(env, { ...body, question }));
+        const startedAt = Date.now();
+        const result = await answerQuestion(env, { ...body, question });
+
+        ctx.waitUntil(
+          recordAgentRequest(env, {
+            request_id: result.request_id,
+            channel: result.channel,
+            question,
+            evidence_status: result.evidence_status,
+            confidence_score: result.confidence?.score ?? null,
+            source_count: Array.isArray(result.sources) ? result.sources.length : 0,
+            latency_ms: Date.now() - startedAt
+          }).catch(() => undefined)
+        );
+
+        return json(result);
       }
 
       if (request.method === "POST" && url.pathname === "/api/v1/telegram/webhook") {
@@ -72,6 +88,11 @@ export default {
       if (url.pathname.startsWith("/admin/")) {
         const denied = requireAdmin(request, env);
         if (denied) return denied;
+      }
+
+      if (request.method === "GET" && url.pathname === "/admin/analytics/summary") {
+        const days = Number(url.searchParams.get("days") ?? "30");
+        return json(await getAnalyticsSummary(env, days));
       }
 
       if (request.method === "POST" && url.pathname === "/admin/sources") {
