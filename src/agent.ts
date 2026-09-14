@@ -131,11 +131,13 @@ function parseModelJson(raw: unknown) {
   const text =
     typeof raw === "string"
       ? raw
-      : typeof (raw as any)?.response === "string"
-        ? (raw as any).response
-        : typeof (raw as any)?.result?.response === "string"
-          ? (raw as any).result.response
-          : "";
+      : typeof (raw as any)?.choices?.[0]?.message?.content === "string"
+        ? (raw as any).choices[0].message.content
+        : typeof (raw as any)?.response === "string"
+          ? (raw as any).response
+          : typeof (raw as any)?.result?.response === "string"
+            ? (raw as any).result.response
+            : "";
 
   const cleaned = text
     .trim()
