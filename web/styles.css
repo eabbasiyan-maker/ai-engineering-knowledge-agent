@@ -1,0 +1,257 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #e5e7eb;
+  background: #07111f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(37, 99, 235, .16), transparent 28rem),
+    radial-gradient(circle at 95% 20%, rgba(14, 165, 233, .08), transparent 24rem),
+    #07111f;
+}
+
+button, textarea { font: inherit; }
+
+button { cursor: pointer; }
+
+.shell {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 40px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.eyebrow, .section-label {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #7dd3fc;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 46px);
+  line-height: 1.2;
+}
+
+.subtitle {
+  max-width: 720px;
+  margin: 14px 0 0;
+  color: #94a3b8;
+  line-height: 1.9;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 7px rgba(34, 197, 94, .12);
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, .16);
+  background: rgba(15, 23, 42, .82);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, .18);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+}
+
+.ask-card { padding: 22px; }
+
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 120px;
+  border: 1px solid #26364c;
+  border-radius: 14px;
+  padding: 16px;
+  color: #f8fafc;
+  background: #081220;
+  outline: none;
+  line-height: 1.8;
+}
+
+textarea:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, .12);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+button {
+  border-radius: 12px;
+  border: 1px solid transparent;
+  padding: 10px 16px;
+}
+
+.primary {
+  color: #04111f;
+  background: #7dd3fc;
+  font-weight: 800;
+}
+
+.primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.ghost, .icon-button, .feedback button {
+  color: #dbeafe;
+  background: #111c2e;
+  border-color: #26364c;
+}
+
+.loading, .error {
+  margin-top: 18px;
+  padding: 18px 20px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(125, 211, 252, .25);
+  border-top-color: #7dd3fc;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, .35);
+}
+
+#answer-section { margin-top: 18px; }
+
+.answer-card, .sources-card { padding: 22px; }
+
+.sources-card { margin-top: 14px; }
+
+.answer-head, .sources-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge, .count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #111c2e;
+  border: 1px solid #26364c;
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.answer-text {
+  margin-top: 20px;
+  white-space: pre-wrap;
+  line-height: 2;
+  color: #f1f5f9;
+}
+
+.feedback {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, .12);
+}
+
+.feedback button { padding: 7px 11px; }
+
+.sources {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.source {
+  padding: 14px;
+  border: 1px solid rgba(148, 163, 184, .13);
+  border-radius: 14px;
+  background: #0a1524;
+}
+
+.source-title {
+  margin: 0 0 8px;
+  color: #e0f2fe;
+  font-weight: 750;
+}
+
+.source-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.muted { color: #7f8ea3; font-size: 13px; }
+
+.hidden { display: none !important; }
+
+footer {
+  padding: 26px 4px 0;
+  color: #64748b;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 20px, 900px);
+    padding-top: 28px;
+  }
+
+  .hero { gap: 12px; }
+  .card { border-radius: 16px; }
+  .ask-card, .answer-card, .sources-card { padding: 16px; }
+
+  .answer-head, .sources-head {
+    flex-direction: column;
+  }
+
+  .icon-button { width: 100%; }
+}
