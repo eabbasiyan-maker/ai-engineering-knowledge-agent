@@ -3,4 +3,4 @@
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev; img-src 'self' data:; style-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; base-uri 'none'; frame-ancestors 'none'
