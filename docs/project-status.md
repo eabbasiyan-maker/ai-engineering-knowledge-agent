@@ -9,7 +9,7 @@
 ## Active phase
 **Phase 2 — Dynamic Library & Ingestion**
 
-Status: IN PROGRESS — live D1 and Vectorize provisioned; R2 made optional; Worker deployment and BOOK-002 E2E remain
+Status: IN PROGRESS — live D1 migration applied; Worker secret authentication blocks deployment; BOOK-002 E2E remains
 
 ## Phase 1 result
 Initial library review is complete:
@@ -99,3 +99,18 @@ Next execution sequence:
 3. Deploy Worker with D1 + Vectorize + Workers AI; omit R2 binding for now.
 4. Ingest BOOK-002.
 5. Run lifecycle validation.
+
+
+## Phase 2 execution update — 2026-09-14
+Latest verified execution:
+- Local worktree was preserved on a safety branch before reconciliation.
+- `main` was aligned to latest upstream.
+- Live D1 migration `0002_d1_text_store.sql` completed successfully.
+- Worker configuration was prepared without an R2 binding.
+- Deployment is currently blocked at `ADMIN_TOKEN` secret configuration because Wrangler is running in a non-interactive environment without `CLOUDFLARE_API_TOKEN`.
+
+Security:
+- Cloudflare resource UUIDs and API tokens are not recorded in this public repository.
+
+Next step:
+Provide Wrangler with a scoped Cloudflare API token through the local execution environment (not through GitHub or chat), set `ADMIN_TOKEN`, deploy the Worker, then run BOOK-002 lifecycle validation.
