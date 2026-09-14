@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <title>Mobile Ingestion — AI Engineering Knowledge Agent</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">MOBILE INGESTION</p>
+        <h1>افزودن کتاب به پایگاه دانش</h1>
+        <p class="subtitle">فایل روی همین دستگاه پردازش می‌شود و Chunkها مستقیم به Agent API فرستاده می‌شوند.</p>
+      </div>
+    </header>
+
+    <section class="card ask-card">
+      <label for="token">Admin Token</label>
+      <input id="token" type="password" autocomplete="off"
+        style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+
+      <div class="actions">
+        <button id="load-sources" class="ghost" type="button">بارگذاری منابع</button>
+      </div>
+
+      <label for="source" style="margin-top:18px">منبع</label>
+      <select id="source"
+        style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+        <option value="">ابتدا منابع را بارگذاری کن</option>
+      </select>
+
+      <label for="book-file" style="margin-top:18px">فایل PDF یا EPUB</label>
+      <input id="book-file" type="file" accept=".pdf,.epub,application/pdf,application/epub+zip"
+        style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+
+      <label for="version" style="margin-top:18px">Version ID</label>
+      <input id="version" type="text" placeholder="مثلاً BOOK-001-v1"
+        style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+
+      <div class="actions">
+        <button id="prepare" class="ghost" type="button">آماده‌سازی فایل</button>
+        <button id="upload" class="primary" type="button" disabled>Ingest و فعال‌سازی</button>
+      </div>
+    </section>
+
+    <section id="status-card" class="card loading hidden" style="margin-top:18px">
+      <span class="spinner"></span>
+      <span id="status-text">در حال پردازش…</span>
+    </section>
+
+    <section id="summary" class="card sources-card hidden">
+      <p class="section-label">خلاصه آماده‌سازی</p>
+      <div id="summary-body" class="answer-text"></div>
+    </section>
+
+    <section id="error-box" class="card error hidden"></section>
+  </main>
+
+  <script src="/ingest.bundle.js" defer></script>
+</body>
+</html>
