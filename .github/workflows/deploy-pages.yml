@@ -53,11 +53,24 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const url = "https://ai-engineering-knowledge-agent-web.pages.dev";
-          const res = await fetch(url);
-          const html = await res.text();
-          if (!res.ok) throw new Error("website HTTP " + res.status);
-          if (!html.includes("AI Engineering Knowledge Agent")) {
-            throw new Error("website content check failed");
+          let last = null;
+
+          for (let attempt = 1; attempt <= 12; attempt++) {
+            try {
+              const res = await fetch(url);
+              const html = await res.text();
+              if (res.ok && html.includes("AI Engineering Knowledge Agent")) {
+                console.log("Website OK:", url, "attempt", attempt);
+                process.exit(0);
+              }
+              last = "HTTP " + res.status;
+            } catch (error) {
+              last = String(error);
+            }
+
+            console.log("Waiting for Pages propagation:", attempt, last);
+            await new Promise(resolve => setTimeout(resolve, 5000));
           }
-          console.log("Website OK:", url);
+
+          throw new Error("website verification failed after retries: " + last);
           NODE
