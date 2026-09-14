@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>AI Engineering Knowledge Agent</title>
+  <meta name="description" content="پرسش از پایگاه دانش مهندسی هوش مصنوعی با پاسخ مبتنی بر منبع." />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">AI Engineering Knowledge Agent</p>
+        <h1>از دانش مهندسی هوش مصنوعی بپرس</h1>
+        <p class="subtitle">پاسخ‌ها از منابع تأییدشده بازیابی می‌شوند و همراه با منبع و سطح اطمینان نمایش داده می‌شوند.</p>
+      </div>
+      <span class="status-dot" title="Knowledge-backed"></span>
+    </header>
+
+    <section class="card ask-card">
+      <form id="ask-form">
+        <label for="question">سؤال</label>
+        <textarea id="question" name="question" rows="4" placeholder="مثلاً: Reflection در AI Agent چه زمانی مفید است؟" required></textarea>
+        <div class="actions">
+          <button id="ask-button" class="primary" type="submit">پرسیدن</button>
+          <button id="clear-button" class="ghost" type="button">پاک کردن</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="loading" class="card loading hidden" aria-live="polite">
+      <span class="spinner"></span>
+      <span>در حال جست‌وجو در دانش تأییدشده…</span>
+    </section>
+
+    <section id="error-box" class="card error hidden" role="alert"></section>
+
+    <section id="answer-section" class="hidden">
+      <article class="card answer-card">
+        <div class="answer-head">
+          <div>
+            <p class="section-label">پاسخ</p>
+            <div id="badges" class="badges"></div>
+          </div>
+          <button id="copy-button" class="icon-button" type="button">کپی پاسخ</button>
+        </div>
+        <div id="answer" class="answer-text" dir="auto"></div>
+        <div id="feedback" class="feedback">
+          <span>این پاسخ مفید بود؟</span>
+          <button data-helpful="true" type="button">👍 بله</button>
+          <button data-helpful="false" type="button">👎 نه</button>
+          <span id="feedback-status" class="muted"></span>
+        </div>
+      </article>
+
+      <section class="card sources-card">
+        <div class="sources-head">
+          <div>
+            <p class="section-label">منابع استفاده‌شده</p>
+            <p class="muted">فقط منابع فعال و تأییدشده در پاسخ استفاده می‌شوند.</p>
+          </div>
+          <span id="source-count" class="count"></span>
+        </div>
+        <div id="sources" class="sources"></div>
+      </section>
+    </section>
+
+    <footer>
+      <span>Evidence-first • One shared knowledge brain</span>
+    </footer>
+  </main>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
