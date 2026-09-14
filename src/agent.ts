@@ -251,7 +251,8 @@ Do not expose long verbatim passages; synthesize.
 Respond in the language of the user's question.
 Judge whether the supplied evidence actually answers the user's question.
 If the evidence is only topically related but does not support the requested fact, use evidence_status="no_evidence".
-If only part of the answer is supported, use evidence_status="partial".
+For a single specific fact request (for example an exact score, benchmark result, percentage, date, count, version, or named experiment), if that exact fact is absent from the evidence, use evidence_status="no_evidence", not "partial".
+Use evidence_status="partial" only when the user's question has multiple meaningful parts and the evidence directly supports at least one part but not all parts.
 If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
