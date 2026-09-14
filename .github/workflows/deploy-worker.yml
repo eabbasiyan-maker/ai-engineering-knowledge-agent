@@ -127,7 +127,8 @@ jobs:
           const body = JSON.parse(text);
           if (!body.request_id) throw new Error("missing request_id");
           if (!body.answer) throw new Error("missing answer");
-          if (!body.evidence_status) throw new Error("missing evidence_status");
+          if (body.evidence_status !== "supported") throw new Error("expected supported, got " + body.evidence_status);
+          if (!body.answer.includes("[S")) throw new Error("answer is missing inline citations");
           if (!body.confidence) throw new Error("missing confidence");
           if (!Array.isArray(body.sources) || body.sources.length === 0) throw new Error("missing sources");
           if (!body.sources.some(s => s.source_id === "BOOK-002")) throw new Error("BOOK-002 not cited");
