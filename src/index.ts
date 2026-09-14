@@ -6,6 +6,7 @@ import { searchKnowledge } from "./search";
 import { answerQuestion, type AskRequest } from "./agent";
 import { saveFeedback, type FeedbackInput } from "./feedback";
 import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
+import { reviewCandidate } from "./curator";
 import { handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 function sourcePath(pathname: string, suffix: string) {
