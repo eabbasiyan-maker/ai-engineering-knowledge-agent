@@ -5,6 +5,7 @@ import { completeVersion, ingestChunkBatch, startVersion, type PreparedChunk } f
 import { searchKnowledge } from "./search";
 import { answerQuestion, type AskRequest } from "./agent";
 import { saveFeedback, type FeedbackInput } from "./feedback";
+import { handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 function sourcePath(pathname: string, suffix: string) {
   const m = pathname.match(new RegExp("^/admin/sources/([^/]+)/" + suffix + "$"));
@@ -12,7 +13,7 @@ function sourcePath(pathname: string, suffix: string) {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     try {
       const url = new URL(request.url);
 
@@ -24,7 +25,7 @@ export default {
         return json({
           ok: true,
           service: "ai-engineering-knowledge-agent",
-          phase: 3
+          phase: 5
         });
       }
 
@@ -39,6 +40,19 @@ export default {
         }
 
         return json(await answerQuestion(env, { ...body, question }));
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/v1/telegram/webhook") {
+        if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_WEBHOOK_SECRET) {
+          return error("Telegram channel is not configured", 503, "NOT_CONFIGURED");
+        }
+        if (!verifyTelegramWebhook(request, env)) {
+          return error("Unauthorized Telegram webhook", 401, "UNAUTHORIZED");
+        }
+
+        const update = await readJson<TelegramUpdate>(request);
+        ctx.waitUntil(handleTelegramUpdate(env, update));
+        return json({ ok: true });
       }
 
       if (request.method === "POST" && url.pathname === "/api/v1/feedback") {
