@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "db/**"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/deploy-worker.yml"
@@ -67,6 +68,10 @@ jobs:
             });
           ')"
           echo "database_id=$D1_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Apply feedback migration
+        if: steps.cf.outputs.ready == 'true'
+        run: npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0003_answer_feedback.sql
 
       - name: Generate deploy config
         if: steps.cf.outputs.ready == 'true'
@@ -169,4 +174,40 @@ jobs:
             confidence: body.confidence,
             answer: body.answer
           }, null, 2));
+          NODE
+
+
+      - name: Smoke test feedback
+        if: steps.cf.outputs.ready == 'true'
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const base = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev";
+
+          const ask = await fetch(base + "/api/v1/ask", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              question: "What are common ReAct failure modes?",
+              channel: "web",
+              top_k: 4
+            })
+          });
+          const answer = await ask.json();
+          if (!ask.ok || !answer.request_id) throw new Error("ask failed before feedback test");
+
+          const res = await fetch(base + "/api/v1/feedback", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              request_id: answer.request_id,
+              helpful: true,
+              channel: "web"
+            })
+          });
+          const body = await res.json();
+          if (!res.ok || body.ok !== true) {
+            throw new Error("feedback failed: " + JSON.stringify(body));
+          }
+          console.log(JSON.stringify(body, null, 2));
           NODE
