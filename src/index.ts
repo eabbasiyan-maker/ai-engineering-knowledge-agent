@@ -9,6 +9,87 @@ import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
 import { reviewCandidate } from "./curator";
 import { handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
+const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
+
+const UI_PATHS = new Set([
+  "/ingest",
+  "/ingest.html",
+  "/styles.css",
+  "/ingest-app.js",
+  "/ingest-utils.js",
+  "/ingest-pdf.js",
+  "/ingest-epub.js",
+  "/ingest-api.js"
+]);
+
+async function proxyUiAsset(pathname: string): Promise<Response> {
+  const sourcePath = pathname === "/ingest" ? "/ingest.html" : pathname;
+  const upstream = await fetch(UI_ORIGIN + sourcePath, {
+    headers: { "User-Agent": "ai-engineering-knowledge-agent-worker" }
+  });
+
+  if (!upstream.ok) {
+    return new Response("UI asset unavailable", { status: upstream.status });
+  }
+
+  let body = await upstream.text();
+
+  if (sourcePath === "/ingest-pdf.js") {
+    body = body
+      .replace(
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs",
+        "/vendor/pdf.mjs"
+      )
+      .replace(
+        "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.min.mjs",
+        "/vendor/pdf.worker.min.mjs"
+      );
+  }
+
+  if (sourcePath === "/ingest-epub.js") {
+    body = body.replace(
+      "https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js",
+      "/vendor/fflate.js"
+    );
+  }
+
+  const headers = new Headers(upstream.headers);
+  headers.set("Cache-Control", "public, max-age=300");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "no-referrer");
+  headers.delete("content-security-policy");
+
+  return new Response(body, { status: 200, headers });
+}
+
+async function proxyVendor(pathname: string): Promise<Response> {
+  const target =
+    pathname === "/vendor/pdf.mjs"
+      ? "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.mjs"
+      : pathname === "/vendor/pdf.worker.min.mjs"
+        ? "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.149/build/pdf.worker.min.mjs"
+        : pathname === "/vendor/fflate.js"
+          ? "https://cdn.jsdelivr.net/npm/fflate@0.8.2/esm/browser.js"
+          : null;
+
+  if (!target) return new Response("Not found", { status: 404 });
+
+  const upstream = await fetch(target, {
+    headers: { "User-Agent": "ai-engineering-knowledge-agent-worker" }
+  });
+
+  if (!upstream.ok) {
+    return new Response("Vendor asset unavailable", { status: upstream.status });
+  }
+
+  const headers = new Headers(upstream.headers);
+  headers.set("Cache-Control", "public, max-age=86400");
+  headers.set("Access-Control-Allow-Origin", "*");
+  headers.set("X-Content-Type-Options", "nosniff");
+
+  return new Response(upstream.body, { status: 200, headers });
+}
+
 function sourcePath(pathname: string, suffix: string) {
   const m = pathname.match(new RegExp("^/admin/sources/([^/]+)/" + suffix + "$"));
   return m ? decodeURIComponent(m[1]) : null;
@@ -21,6 +102,14 @@ export default {
 
       if (request.method === "OPTIONS") {
         return preflight();
+      }
+
+      if (request.method === "GET" && UI_PATHS.has(url.pathname)) {
+        return proxyUiAsset(url.pathname);
+      }
+
+      if (request.method === "GET" && url.pathname.startsWith("/vendor/")) {
+        return proxyVendor(url.pathname);
       }
 
       if (request.method === "GET" && url.pathname === "/health") {
