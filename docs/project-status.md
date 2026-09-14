@@ -9,7 +9,7 @@
 ## Active phase
 **Phase 2 — Dynamic Library & Ingestion**
 
-Status: IN PROGRESS — implementation complete, live Cloudflare provisioning pending
+Status: IN PROGRESS — live D1 and Vectorize provisioned; R2 made optional; Worker deployment and BOOK-002 E2E remain
 
 ## Phase 1 result
 Initial library review is complete:
@@ -71,14 +71,31 @@ Local validation reported by Codex:
 - Whitespace validation: pass
 
 Current Phase 2 status:
-**BLOCKED ON R2 ACCOUNT ACTIVATION**
+**UNBLOCKED — R2 is optional for the MVP; D1 is the operational text store**
 
 Do not close Phase 2 until:
-1. R2 is activated and bucket creation succeeds.
-2. Worker is deployed with D1/R2/Vectorize/Workers AI bindings.
-3. Schema and seed are applied to live D1.
+1. D1 migration 0002 is applied to the live database.
+2. Worker is deployed with D1/Vectorize/Workers AI bindings; R2 is optional.
+3. Schema/seed state is verified on live D1.
 4. BOOK-002 is ingested.
 5. Search + disable + re-enable + re-index/version-swap + archive exclusion are verified end-to-end.
 
 Security note:
 Cloudflare account/resource UUIDs are intentionally not recorded in this public repository.
+
+
+## Phase 2 unblock decision — 2026-09-14
+R2 subscription activation is no longer a Phase-2 dependency.
+
+Changes committed:
+- D1 now stores operational chunk text.
+- R2 binding is optional.
+- Search reads D1 text first and can fall back to R2 for legacy/mirrored rows.
+- Existing live D1 can be upgraded using `db/migrations/0002_d1_text_store.sql`.
+
+Next execution sequence:
+1. Pull latest `main` in the Cloudflare/Codex working copy.
+2. Apply migration 0002 to `ai-knowledge-catalog`.
+3. Deploy Worker with D1 + Vectorize + Workers AI; omit R2 binding for now.
+4. Ingest BOOK-002.
+5. Run lifecycle validation.
