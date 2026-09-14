@@ -21,7 +21,8 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
     const row = await env.DB.prepare(
       `SELECT
           k.chunk_id, k.source_id, k.version_id, k.chapter, k.section,
-          k.r2_text_key, s.title, s.grade, s.status, v.status AS version_status
+          k.content_text, k.r2_text_key,
+          s.title, s.grade, s.status, v.status AS version_status
        FROM knowledge_chunks k
        JOIN sources s ON s.source_id = k.source_id
        JOIN source_versions v ON v.version_id = k.version_id
@@ -33,9 +34,18 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
 
     if (!row) continue;
 
-    const object = await env.KNOWLEDGE_R2.get(String(row.r2_text_key));
-    if (!object) continue;
-    const text = await object.text();
+    let text = String(row.content_text ?? "");
+
+    // Backward-compatible fallback for older R2-backed rows.
+    if (!text && env.KNOWLEDGE_R2 && row.r2_text_key) {
+      const key = String(row.r2_text_key);
+      if (!key.startsWith("d1://")) {
+        const object = await env.KNOWLEDGE_R2.get(key);
+        if (object) text = await object.text();
+      }
+    }
+
+    if (!text) continue;
 
     accepted.push({
       score: match.score,
