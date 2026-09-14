@@ -5,59 +5,49 @@
 ## Completed phases
 - Phase 0 — Architecture & Governance ✅
 - Phase 1 — Source Registry ✅
+- Phase 2 — Dynamic Library & Ingestion ✅
+- Phase 3 — Agent Core ✅
+- Phase 4 — Website MVP ✅
 
 ## Active phase
-**Phase 2 — Dynamic Library & Ingestion**
+**Phase 5 — Telegram Channel**
 
-Status: **IN PROGRESS — deployed, BOOK-002 lifecycle validation reached version swap, runtime fix committed**
+Status: IN PROGRESS
 
-## Live infrastructure
-- D1: `ai-knowledge-catalog` ✅
-- Vectorize: `ai-knowledge-index` — 1024 dimensions, cosine ✅
-- Worker: `https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev` ✅
-- ADMIN_TOKEN: configured ✅
-- R2: optional for MVP; not activated
+## Live production components
+- Worker API: https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev
+- Website: https://ai-engineering-knowledge-agent-web.pages.dev
+- D1: ai-knowledge-catalog
+- Vectorize: ai-knowledge-index
+- Workers AI generation: @cf/meta/llama-3.1-8b-instruct-fast
+- Workers AI embeddings: @cf/baai/bge-m3
 
-## Live data verification
-- source catalog seeded: 13 sources ✅
-- D1 migration 0002 applied ✅
-- `content_text` column present ✅
-- health endpoint passed ✅
+## Phase 3 acceptance
+- POST /api/v1/ask live
+- grounded supported-answer path passed
+- no-evidence fail-closed path passed
+- source metadata and confidence passed
+- automatic GitHub -> Cloudflare Worker deployment passed
 
-## BOOK-002 pilot
-Prepared from EPUB:
-- extracted text: 417,835 characters
-- chunks: 194
-- chunking: structure-aware heuristic, target ~2600 chars, overlap ~350 chars
+## Phase 4 acceptance
+- responsive Persian-first chat UI live
+- source and confidence display
+- copy answer
+- persisted helpful/not-helpful feedback in D1
+- CORS/preflight support
+- automatic GitHub -> Cloudflare Pages deployment passed
 
-Lifecycle results:
-- v1 ingest ✅
-- active -> searchable ✅
-- disabled -> excluded ✅
-- re-enabled -> searchable ✅
-- v2 ingest ✅
-- version swap search ❌ initially failed
+## Phase 5 implementation
+Implemented and deployed:
+- Telegram webhook endpoint
+- same Agent Core / same KB
+- /start and /help
+- text question handling
+- source/confidence formatting
+- error and rate-limit messaging
 
-## Root cause found
-The version swap exposed a real retrieval bug:
-- D1 archived the previous version correctly.
-- Prior-version vectors remained in Vectorize.
-- Because v1 and v2 content are near-identical, stale v1 vectors could dominate the nearest-neighbor candidate set.
-- D1 then rejected those stale candidates, leaving too few current-version results.
-
-## Fix committed
-- version activation now requests deletion of stale prior-version vectors from Vectorize
-- search candidate pool widened to 100
-- D1 remains the final runtime eligibility authority
-- search results now include `version_id`
-
-Cloudflare Vectorize deletion is asynchronous, so validation retries are expected immediately after a version swap.
-
-## Definition of Done remaining
-1. Pull/redeploy latest runtime fix.
-2. Re-complete BOOK-002 v2 to trigger stale-vector cleanup.
-3. Confirm v2 searchable.
-4. Confirm archived source excluded.
-5. Restore BOOK-002 active.
-6. Commit/push any remaining validated local deployment config.
-7. Close Issue #3 and start Phase 3 — Agent Core.
+Remaining:
+1. Add TELEGRAM_BOT_TOKEN and TELEGRAM_WEBHOOK_SECRET as Cloudflare Worker secrets.
+2. Register Telegram webhook.
+3. Send one real message to the bot and validate end-to-end response.
+4. Close Phase 5 and start Phase 6 — Shared GPT.
