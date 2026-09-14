@@ -1,6 +1,7 @@
-schema_version: "1.1"
+schema_version: "1.2"
 registry_status: "phase-1-complete"
 last_verified_at: "2026-09-14"
+location_policy: "Private Drive IDs are runtime-only and are not stored in this public repository."
 
 scoring_policy:
   max_score: 100
@@ -27,7 +28,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1q2exKd8Gbr4J5TtCOucPb-PUN9TNbiyu"
 
   - source_id: BOOK-002
     title: "Build an AI Agent (From Scratch)"
@@ -45,7 +45,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1o44ZMOdn4SsSnVeVmF4GHKacyT8bRj8-"
 
   - source_id: BOOK-003
     title: "An Illustrated Guide to AI Agents"
@@ -63,7 +62,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1fvHvFyd1aBeL51pzVveMn_yupITh_qwm"
 
   - source_id: BOOK-004
     title: "Agentic GraphRAG"
@@ -81,7 +79,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1xZ7Le3sfKghWYpDRYEcGPMY-qVPmJOyb"
 
   - source_id: BOOK-005
     title: "Practical Multi-Agent AI Systems"
@@ -99,7 +96,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "15f5dgOzy4YoiZjOMJgC6lUWZbZ0PWOxn"
 
   - source_id: BOOK-006
     title: "Breaking the Model Context Protocol"
@@ -117,7 +113,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1hdVDMjijhLNS-tYW9hBrHdn8TtDGD9-h"
 
   - source_id: BOOK-007
     title: "The Claude Code Operating Model"
@@ -135,7 +130,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1AvxHgv2-zoOEbG_o_4C6gCPFsss-8zwr"
 
   - source_id: BOOK-008
     title: "Architecting Production-Ready Gen AI and Agentic AI Systems"
@@ -153,7 +147,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1asTBF2w-hqzhof-hhmgcNeG_tDqMry8G"
 
   - source_id: BOOK-009
     title: "Agentic AI in Enterprise"
@@ -171,7 +164,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "03-Archived"
-      file_id: "11bQ6kCv7GJfEzCo7PIJ-KJxsqSmSkIL7"
 
   - source_id: BOOK-010
     title: "Production-Grade Agentic AI"
@@ -189,7 +181,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1pCcpXzxzo3P_3kOipJ316oOGZQOhv-Yw"
 
   - source_id: BOOK-011
     title: "Design Multi-Agent AI Systems Using MCP and A2A"
@@ -207,7 +198,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1bsBIlUWY-YGQrW9raN38jB1RiHm7nXoh"
 
   - source_id: BOOK-012
     title: "Building LLM Agents with RAG, Knowledge Graphs, and Reflection"
@@ -225,7 +215,6 @@ sources:
     original_location:
       provider: google-drive
       folder: "03-Archived"
-      file_id: "1sIaT2dInXhJGH1b4ZOAveW2OwFCoGfhq"
 
   - source_id: BOOK-013
     title: "Building AI-Powered Products"
@@ -243,4 +232,3 @@ sources:
     original_location:
       provider: google-drive
       folder: "02-Approved"
-      file_id: "1m-m9InHEiC7AXPSCSzEBQBCDy7Xi_1go"
