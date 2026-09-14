@@ -1,0 +1,63 @@
+name: Deploy Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PAGES_PROJECT: ai-engineering-knowledge-agent-web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Ensure Pages project exists
+        shell: bash
+        run: |
+          EXISTS="$(npx wrangler pages project list --json | node -e '
+            let s="";
+            process.stdin.on("data", d => s += d);
+            process.stdin.on("end", () => {
+              const rows = JSON.parse(s);
+              const found = rows.some(x => x.name === process.env.PAGES_PROJECT);
+              process.stdout.write(found ? "yes" : "no");
+            });
+          ')"
+
+          if [ "$EXISTS" != "yes" ]; then
+            npx wrangler pages project create "$PAGES_PROJECT" --production-branch main
+          fi
+
+      - name: Deploy website
+        run: |
+          npx wrangler pages deploy web             --project-name "$PAGES_PROJECT"             --branch main             --commit-hash "$GITHUB_SHA"             --commit-message "GitHub Actions deploy"
+
+      - name: Verify website
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const url = "https://ai-engineering-knowledge-agent-web.pages.dev";
+          const res = await fetch(url);
+          const html = await res.text();
+          if (!res.ok) throw new Error("website HTTP " + res.status);
+          if (!html.includes("AI Engineering Knowledge Agent")) {
+            throw new Error("website content check failed");
+          }
+          console.log("Website OK:", url);
+          NODE
