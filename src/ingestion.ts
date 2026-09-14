@@ -171,11 +171,27 @@ export async function completeVersion(
     );
   }
 
+  const staleVectors = await env.DB.prepare(
+    `SELECT vector_id
+     FROM knowledge_chunks
+     WHERE source_id = ?
+       AND version_id <> ?
+       AND vector_id IS NOT NULL`
+  ).bind(sourceId, versionId).all<{ vector_id: string }>();
+
+  const staleVectorIds = (staleVectors.results ?? [])
+    .map((row) => row.vector_id)
+    .filter((id): id is string => Boolean(id));
+
+  for (let i = 0; i < staleVectorIds.length; i += 500) {
+    await env.VECTORIZE.deleteByIds(staleVectorIds.slice(i, i + 500));
+  }
+
   await env.DB.batch([
     env.DB.prepare(
       `UPDATE source_versions
        SET status='archived', archived_at=CURRENT_TIMESTAMP
-       WHERE source_id = ? AND version_id <> ? AND status='active'`
+       WHERE source_id = ? AND version_id <> ? AND status IN ('active','processing')`
     ).bind(sourceId, versionId),
     env.DB.prepare(
       `UPDATE knowledge_chunks
@@ -205,5 +221,8 @@ export async function completeVersion(
     ).bind(sourceId)
   ]);
 
-  return manifest;
+  return {
+    ...manifest,
+    staleVectorsDeleteRequested: staleVectorIds.length
+  };
 }
