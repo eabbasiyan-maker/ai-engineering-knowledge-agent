@@ -135,16 +135,28 @@ function ensureInlineCitation(answer: string, sourceCount: number) {
 }
 
 function parseModelJson(raw: unknown) {
-  const text =
-    typeof raw === "string"
-      ? raw
-      : typeof (raw as any)?.choices?.[0]?.message?.content === "string"
-        ? (raw as any).choices[0].message.content
-        : typeof (raw as any)?.response === "string"
-          ? (raw as any).response
-          : typeof (raw as any)?.result?.response === "string"
-            ? (raw as any).result.response
-            : "";
+  const obj = raw as any;
+  const choiceContent = obj?.choices?.[0]?.message?.content;
+
+  let text = "";
+
+  if (typeof raw === "string") {
+    text = raw;
+  } else if (typeof choiceContent === "string") {
+    text = choiceContent;
+  } else if (Array.isArray(choiceContent)) {
+    text = choiceContent.map((part: any) => part?.text ?? "").join("");
+  } else if (typeof obj?.response === "string") {
+    text = obj.response;
+  } else if (obj?.response && typeof obj.response === "object") {
+    text = JSON.stringify(obj.response);
+  } else if (typeof obj?.result?.response === "string") {
+    text = obj.result.response;
+  } else if (obj?.result?.response && typeof obj.result.response === "object") {
+    text = JSON.stringify(obj.result.response);
+  } else if (obj?.answer) {
+    text = JSON.stringify(obj);
+  }
 
   const cleaned = text
     .trim()
