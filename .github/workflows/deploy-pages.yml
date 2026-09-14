@@ -57,3 +57,39 @@ jobs:
 
           throw new Error("website verification failed after retries: " + last);
           NODE
+
+
+      - name: Verify mobile admin and ingestion tools
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const base = "https://ai-engineering-knowledge-agent-web.pages.dev";
+          const checks = [
+            [base + "/admin.html", "ADMIN ANALYTICS"],
+            [base + "/ingest.html", "MOBILE INGESTION"],
+            [base + "/ingest-app.js", "completeVersion"],
+            [base + "/ingest-pdf.js", "pdfjs-dist"],
+            [base + "/ingest-epub.js", "fflate"]
+          ];
+
+          for (const [url, marker] of checks) {
+            let ok = false;
+            let last = "";
+            for (let attempt = 1; attempt <= 8; attempt++) {
+              try {
+                const res = await fetch(url);
+                const text = await res.text();
+                if (res.ok && text.includes(marker)) {
+                  ok = true;
+                  break;
+                }
+                last = "HTTP " + res.status;
+              } catch (error) {
+                last = String(error);
+              }
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
+            if (!ok) throw new Error("verification failed for " + url + ": " + last);
+            console.log("OK", url);
+          }
+          NODE
