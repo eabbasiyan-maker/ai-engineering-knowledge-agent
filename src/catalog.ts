@@ -107,3 +107,24 @@ export async function setSourceStatus(
   }
   return getSource(env, sourceId);
 }
+
+
+export async function listSources(env: Env) {
+  const rows = await env.DB.prepare(
+    `SELECT
+       source_id, title, author, publisher, publication_year,
+       grade, reference_score, status, updated_at
+     FROM sources
+     ORDER BY
+       CASE grade
+         WHEN 'A' THEN 1
+         WHEN 'B' THEN 2
+         WHEN 'Supplemental' THEN 3
+         ELSE 4
+       END,
+       reference_score DESC,
+       source_id ASC`
+  ).all();
+
+  return rows.results ?? [];
+}
