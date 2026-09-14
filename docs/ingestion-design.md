@@ -6,7 +6,7 @@ Allow a source to be added, updated, disabled, archived, replaced, and re-indexe
 ## Systems of record
 - Original source: Google Drive
 - Source catalog and lifecycle: D1
-- Extracted/processed artifacts: R2
+- MVP operational chunk text: D1\n- Optional derivative mirror: R2 (when activated)
 - Search index: Vectorize
 - Code and policies: GitHub
 
@@ -151,3 +151,31 @@ No raw PDF/EPUB and no prepared chunk payload is committed to GitHub.
 
 ### Runtime status semantics
 Disabling or archiving a source updates D1 immediately. Search always re-checks current D1 source/version/chunk status after Vectorize returns candidates, so stale vectors cannot make a disabled source eligible for LLM context.
+
+
+## R2 activation fallback decision — 2026-09-14
+
+Live provisioning exposed a real account-level blocker: R2 requires subscription activation on the target Cloudflare account.
+
+To preserve the zero-cost/no-surprise-billing MVP goal, R2 is no longer mandatory for Phase 2.
+
+For the MVP:
+- D1 stores chunk text and metadata.
+- Vectorize stores only the semantic index.
+- Google Drive remains the master source store.
+- R2 is optional and can later mirror processed derivatives after activation.
+
+This is viable for the current library because D1 Free supports up to 500 MB per database and 5 GB total account storage, while individual rows may be up to 2 MB. Our chunk sizes are far below the row limit.
+
+Migration for the already-created database:
+- `db/migrations/0002_d1_text_store.sql`
+
+After migration, Phase 2 can continue without R2:
+```text
+Google Drive
+  -> local PDF/EPUB preparation
+  -> Worker batch upload
+  -> D1 chunk text + metadata
+  -> Workers AI embeddings
+  -> Vectorize
+```
