@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ai-knowledge.local/schemas/processed-source.schema.json",
+  "title": "ProcessedSourceManifest",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "sourceId",
+    "versionId",
+    "original",
+    "extraction",
+    "chunks"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "sourceId": { "type": "string" },
+    "versionId": { "type": "string" },
+    "original": {
+      "type": "object",
+      "required": ["provider", "fileId", "mimeType"],
+      "properties": {
+        "provider": { "const": "google-drive" },
+        "fileId": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "checksum": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "extraction": {
+      "type": "object",
+      "required": ["status", "createdAt"],
+      "properties": {
+        "status": {
+          "enum": ["succeeded", "partial", "failed"]
+        },
+        "createdAt": { "type": "string" },
+        "extractor": { "type": "string" },
+        "warnings": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "chunks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "chunkId",
+          "index",
+          "contentHash",
+          "textKey"
+        ],
+        "properties": {
+          "chunkId": { "type": "string" },
+          "index": { "type": "integer", "minimum": 0 },
+          "chapter": { "type": ["string", "null"] },
+          "section": { "type": ["string", "null"] },
+          "headingPath": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "contentHash": { "type": "string" },
+          "tokenCount": { "type": ["integer", "null"] },
+          "textKey": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
