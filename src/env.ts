@@ -7,4 +7,6 @@ export interface Env {
   EMBEDDING_MODEL: string;
   GENERATION_MODEL?: string;
   MIN_RETRIEVAL_SCORE?: string;
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_WEBHOOK_SECRET?: string;
 }
