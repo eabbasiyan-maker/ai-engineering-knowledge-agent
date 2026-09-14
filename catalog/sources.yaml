@@ -1,22 +1,240 @@
 schema_version: "1.0"
-sources: []
+registry_status: "phase-1-inventory-complete_scoring-in-progress"
+last_verified_at: "2026-09-14"
 
-# Example:
-# - source_id: BOOK-001
-#   title: Building Reliable AI Systems
-#   author: ""
-#   publisher: ""
-#   year: 2026
-#   edition: "1"
-#   type: book
-#   topics:
-#     - reliability
-#     - agents
-#   reference_score: 0
-#   grade: pending
-#   status: incoming
-#   original_location:
-#     provider: google-drive
-#     file_id: ""
-#   added_at: ""
-#   reviewed_at: ""
+sources:
+  - source_id: BOOK-001
+    title: "Building Reliable AI Systems"
+    subtitle: "Applications and agents you can trust"
+    author: "Rush Shahani"
+    publisher: "Manning"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [reliability, agents, rag, evaluation, production]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1q2exKd8Gbr4J5TtCOucPb-PUN9TNbiyu"
+
+  - source_id: BOOK-002
+    title: "Build an AI Agent (From Scratch)"
+    author: "Jungjun Hur; Younghee Song"
+    publisher: "Manning"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [agents, tool-use, react, memory, planning, reflection, rag, multi-agent, evaluation]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1o44ZMOdn4SsSnVeVmF4GHKacyT8bRj8-"
+
+  - source_id: BOOK-003
+    title: "An Illustrated Guide to AI Agents"
+    subtitle: "Building Autonomous Systems with LLMs, Tools, and Memory"
+    author: "Maarten Grootendorst; Jay Alammar"
+    publisher: "O'Reilly Media"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [agents, llm-foundations, tools, memory, reasoning, multi-agent]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1fvHvFyd1aBeL51pzVveMn_yupITh_qwm"
+
+  - source_id: BOOK-004
+    title: "Agentic GraphRAG"
+    subtitle: "Integrating Knowledge Graphs, Reasoning, and Agency for Enterprise AI"
+    author: "Anthony Alcaraz; Sam Julien"
+    publisher: "O'Reilly Media"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [rag, graphrag, knowledge-graphs, agents, retrieval, enterprise-ai]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1xZ7Le3sfKghWYpDRYEcGPMY-qVPmJOyb"
+
+  - source_id: BOOK-005
+    title: "Practical Multi-Agent AI Systems"
+    subtitle: "How to Architect, Build, and Scale Next-Generation AI Systems That Work in the Real World"
+    author: "Murali Kashaboina"
+    publisher: "Wiley"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [multi-agent, architecture, mcp, context-engineering, security, observability, deployment]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "15f5dgOzy4YoiZjOMJgC6lUWZbZ0PWOxn"
+
+  - source_id: BOOK-006
+    title: "Breaking the Model Context Protocol"
+    subtitle: "Agentic Attacks and Defenses for MCP-Powered AI Systems"
+    author: "Thejes sree Satheesh kumar; Srinivasan Sekar"
+    publisher: "Apress"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [mcp, security, prompt-injection, tool-attacks, red-teaming, devsecops]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1hdVDMjijhLNS-tYW9hBrHdn8TtDGD9-h"
+
+  - source_id: BOOK-007
+    title: "The Claude Code Operating Model"
+    subtitle: "Build scalable AI coding systems with Skills, MCP, Hooks, agent orchestration, and SDK patterns"
+    author: "Jia Huang"
+    publisher: "Packt"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [coding-agents, context, skills, subagents, hooks, mcp, governance, cicd]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1AvxHgv2-zoOEbG_o_4C6gCPFsss-8zwr"
+
+  - source_id: BOOK-008
+    title: "Architecting Production-Ready Gen AI and Agentic AI Systems"
+    subtitle: "A Practitioner's Guide to Architecture, Retrieval, Agents, Evaluation, Security, Governance, FinOps, and Production Operations"
+    author: "Srinivas Bommena"
+    publisher: "Leanpub"
+    year: 2026
+    edition: "current"
+    type: book
+    topics: [architecture, rag, agents, evaluation, security, governance, finops, observability, production]
+    reference_score: null
+    grade: pending_scoring
+    status: approved
+    score_status: pending_full_review
+    notes: "Leanpub work-in-progress source; edition/version should be tracked closely."
+    original_location:
+      provider: google-drive
+      folder: "02-Approved"
+      file_id: "1asTBF2w-hqzhof-hhmgcNeG_tDqMry8G"
+
+  - source_id: BOOK-009
+    title: "Agentic AI in Enterprise"
+    subtitle: "Harnessing Agentic AI for Business Transformation"
+    author: "Sumit Ranjan; Divya Chembachere; Lanwin Lobo"
+    publisher: "Apress"
+    year: 2025
+    edition: "1"
+    type: book
+    topics: [enterprise-ai, agents, security, governance, deployment, local-llms]
+    reference_score: null
+    grade: pending_scoring
+    status: incoming
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "01-Incoming"
+      file_id: "11bQ6kCv7GJfEzCo7PIJ-KJxsqSmSkIL7"
+
+  - source_id: BOOK-010
+    title: "Production-Grade Agentic AI"
+    subtitle: "From Brittle Workflows to Deployable Autonomous Systems"
+    author: "Ran Aroussi"
+    publisher: "Leanpub"
+    year: 2025
+    edition: "work-in-progress"
+    type: book
+    topics: [agents, production, memory, orchestration, observability, deployment, multi-model]
+    reference_score: null
+    grade: pending_scoring
+    status: incoming
+    score_status: pending_full_review
+    notes: "Author-published Leanpub source; completion/version must be checked before admission."
+    original_location:
+      provider: google-drive
+      folder: "01-Incoming"
+      file_id: "1pCcpXzxzo3P_3kOipJ316oOGZQOhv-Yw"
+
+  - source_id: BOOK-011
+    title: "Design Multi-Agent AI Systems Using MCP and A2A"
+    subtitle: "Engineer your own Python-based agentic AI framework with tool use, memory, and multi-agent workflows"
+    author: "Gigi Sayfan"
+    publisher: "Packt"
+    year: 2026
+    edition: "1"
+    type: book
+    topics: [multi-agent, mcp, a2a, python, memory, tool-use, deployment]
+    reference_score: null
+    grade: pending_scoring
+    status: incoming
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "01-Incoming"
+      file_id: "1bsBIlUWY-YGQrW9raN38jB1RiHm7nXoh"
+
+  - source_id: BOOK-012
+    title: "Building LLM Agents with RAG, Knowledge Graphs, and Reflection"
+    subtitle: "A Practical Guide to Building Intelligent, Context-Aware, and Autonomous Systems"
+    author: "Mira S. Devlin"
+    publisher: null
+    year: null
+    edition: null
+    type: book
+    topics: [agents, rag, knowledge-graphs, reflection, context]
+    reference_score: null
+    grade: pending_scoring
+    status: incoming
+    score_status: provenance_review_required
+    notes: "Publisher/year/provenance require independent verification before admission."
+    original_location:
+      provider: google-drive
+      folder: "01-Incoming"
+      file_id: "1sIaT2dInXhJGH1b4ZOAveW2OwFCoGfhq"
+
+  - source_id: BOOK-013
+    title: "Building AI-Powered Products"
+    subtitle: "The Essential Guide to AI and GenAI Product Management"
+    author: "Marily Nika"
+    publisher: "O'Reilly Media"
+    year: 2025
+    edition: "1"
+    type: book
+    topics: [ai-product, genai-product, product-management, strategy, metrics, lifecycle]
+    reference_score: null
+    grade: pending_scoring
+    status: incoming
+    score_status: pending_full_review
+    original_location:
+      provider: google-drive
+      folder: "01-Incoming"
+      file_id: "1m-m9InHEiC7AXPSCSzEBQBCDy7Xi_1go"
