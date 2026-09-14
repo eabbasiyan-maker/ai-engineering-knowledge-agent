@@ -5,4 +5,6 @@ export interface Env {
   AI: Ai;
   ADMIN_TOKEN: string;
   EMBEDDING_MODEL: string;
+  GENERATION_MODEL?: string;
+  MIN_RETRIEVAL_SCORE?: string;
 }
