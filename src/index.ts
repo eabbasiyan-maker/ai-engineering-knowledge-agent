@@ -3,6 +3,7 @@ import { error, json, readJson, requireAdmin } from "./http";
 import { getSource, setSourceStatus, upsertSource, type SourceInput, type SourceStatus } from "./catalog";
 import { completeVersion, ingestChunkBatch, startVersion, type PreparedChunk } from "./ingestion";
 import { searchKnowledge } from "./search";
+import { answerQuestion, type AskRequest } from "./agent";
 
 function sourcePath(pathname: string, suffix: string) {
   const m = pathname.match(new RegExp("^/admin/sources/([^/]+)/" + suffix + "$"));
@@ -18,8 +19,21 @@ export default {
         return json({
           ok: true,
           service: "ai-engineering-knowledge-agent",
-          phase: 2
+          phase: 3
         });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/v1/ask") {
+        const body = await readJson<AskRequest>(request);
+        const question = String(body.question ?? "").trim();
+        if (!question) return error("question is required");
+
+        const allowedChannels = ["web", "telegram", "gpt", "api"];
+        if (body.channel && !allowedChannels.includes(body.channel)) {
+          return error("Unsupported channel");
+        }
+
+        return json(await answerQuestion(env, { ...body, question }));
       }
 
       if (url.pathname.startsWith("/admin/")) {
