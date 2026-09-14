@@ -1,7 +1,18 @@
 import type { Env } from "./env";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400"
+};
+
 export function json(data: unknown, status = 200): Response {
-  return Response.json(data, { status });
+  return Response.json(data, { status, headers: corsHeaders });
+}
+
+export function preflight(): Response {
+  return new Response(null, { status: 204, headers: corsHeaders });
 }
 
 export function error(message: string, status = 400, code = "BAD_REQUEST"): Response {
