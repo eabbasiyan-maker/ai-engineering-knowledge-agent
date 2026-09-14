@@ -16,7 +16,7 @@ GPT ─────┘              |
                         |
                         +--> D1 Catalog / Runtime Metadata
                         +--> Vectorize Search Index
-                        +--> R2 Processed Artifacts
+                        +--> D1 Chunk Text / Metadata\n                        +--> R2 Optional Derivative Mirror
 
 Google Drive (private)
     |
@@ -45,7 +45,7 @@ Google Drive (private)
 2. Website, Telegram and GPT must not maintain separate knowledge bases.
 3. A source can be Active, Disabled or Archived without redeploying the application.
 4. Every retrieved chunk must retain source_id and location metadata.
-5. Vectorize is an index, not the authoritative knowledge store.
+5. Vectorize is an index, not the authoritative knowledge store.\n6. For the MVP, D1 is the authoritative operational text store; R2 is optional and can be enabled later as a derivative mirror.
 6. Source deletion must remove or disable its corresponding searchable vectors.
 7. Unknown or unsupported claims must not be presented as sourced facts.
 
