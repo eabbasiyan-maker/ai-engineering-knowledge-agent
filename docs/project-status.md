@@ -46,3 +46,11 @@
 - Privacy policy updated
 - Production analytics capture smoke test passed with request_count=28
 - Remaining: authenticated live acceptance of the admin summary endpoint
+
+
+## Remaining approved library batch
+- Prepared batch for the remaining 9 approved books: BOOK-003, BOOK-004, BOOK-005, BOOK-006, BOOK-007, BOOK-008, BOOK-010, BOOK-011, BOOK-013.
+- Prepared total: 2,783 chunks.
+- Batch ingestion UI and Worker proxy are deployed; CI, Worker deploy, Website deploy, and Evaluation are green.
+- Production activation is still pending one authenticated batch upload through the mobile ingestion page.
+- After successful activation, the operational approved library will contain 11 books (BOOK-001 through the approved set) with about 3,317 active chunks including BOOK-001 and BOOK-002.
