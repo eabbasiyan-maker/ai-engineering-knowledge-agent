@@ -17,6 +17,7 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
   });
 
   const accepted = [];
+  const eligibleTarget = Math.min(Math.max(topK * 3, 24), 36);
 
   for (const match of result.matches ?? []) {
     const chunkId = String(match.id);
@@ -62,7 +63,9 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
       text
     });
 
-    if (accepted.length >= topK) break;
+    // Keep a broader eligible set so the context builder can deliberately
+    // include independent sources instead of being dominated by one book.
+    if (accepted.length >= eligibleTarget) break;
   }
 
   return accepted;
