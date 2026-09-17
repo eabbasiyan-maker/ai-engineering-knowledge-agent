@@ -21,6 +21,9 @@ const UI_PATHS = new Set([
   "/answer.css",
   "/discovery.css",
   "/library.css",
+  "/management.css",
+  "/privacy",
+  "/privacy.html",
   "/ingest",
   "/ingest.html",
   "/admin",
@@ -42,7 +45,9 @@ async function proxyUiAsset(pathname: string): Promise<Response> {
       ? "/ingest.html"
       : pathname === "/admin"
         ? "/admin.html"
-        : pathname;
+        : pathname === "/privacy"
+          ? "/privacy.html"
+          : pathname;
   const upstream = await fetch(UI_ORIGIN + sourcePath, {
     headers: { "User-Agent": "ai-engineering-knowledge-agent-worker" }
   });
