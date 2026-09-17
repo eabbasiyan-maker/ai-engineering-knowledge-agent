@@ -73,8 +73,8 @@ function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
   const chosen: RankedMatch[] = [];
   let used = 0;
 
-  for (const match of matches) {
-    if (chosen.length >= maxChunks) break;
+  const canChoose = (match: RankedMatch) => {
+    if (chosen.length >= maxChunks) return false;
 
     const ordinal = chunkOrdinal(match.chunk_id);
     const isNearDuplicate = chosen.some((existing) => {
@@ -83,17 +83,42 @@ function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
       return ordinal !== null && existingOrdinal !== null &&
         Math.abs(ordinal - existingOrdinal) <= 1;
     });
-    if (isNearDuplicate) continue;
+    if (isNearDuplicate) return false;
 
     const text = String(match.text ?? "").trim();
-    if (!text) continue;
+    if (!text) return false;
 
     const remaining = maxChars - used;
-    if (remaining < 500) break;
+    if (remaining < 500) return false;
 
     const clipped = text.length > remaining ? text.slice(0, remaining) : text;
     chosen.push({ ...match, text: clipped });
     used += clipped.length;
+    return true;
+  };
+
+  if (matches.length) canChoose(matches[0]);
+
+  // Prefer independent evidence when another reasonably relevant source exists.
+  // This gives the model a chance to detect agreement or conflict instead of
+  // filling the whole context with neighboring chunks from one book.
+  if (chosen.length && chosen.length < maxChunks) {
+    const topScore = chosen[0].score;
+    const diversityFloor = Math.max(0.45, topScore - 0.2);
+    const seenSources = new Set(chosen.map((m) => m.source_id));
+
+    for (const match of matches) {
+      if (chosen.length >= Math.min(maxChunks, 3)) break;
+      if (seenSources.has(match.source_id)) continue;
+      if (match.score < diversityFloor) continue;
+      if (canChoose(match)) seenSources.add(match.source_id);
+    }
+  }
+
+  for (const match of matches) {
+    if (chosen.length >= maxChunks) break;
+    if (chosen.some((existing) => existing.chunk_id === match.chunk_id)) continue;
+    canChoose(match);
   }
 
   const context = chosen.map((m, index) => {
