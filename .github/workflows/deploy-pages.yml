@@ -43,8 +43,11 @@ jobs:
           const requiredMarkers = [
             "AI.Knowledge",
             "id=\"ask-form\"",
-            "id=\"frequent-questions\"",
-            "id=\"recent-questions\""
+            "id=\"answer-section\"",
+            "id=\"topics\"",
+            "id=\"questions\"",
+            "id=\"books\"",
+            "id=\"trust\""
           ];
           let last = null;
 
@@ -80,23 +83,43 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           const base = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev";
+          const cacheBust = encodeURIComponent(process.env.GITHUB_SHA || Date.now());
 
-          const homeRes = await fetch(base + "/", { cache: "no-store" });
+          const homeRes = await fetch(base + "/?deploy=" + cacheBust, { cache: "no-store" });
           const homeHtml = await homeRes.text();
           const homeMarkers = [
             "AI.Knowledge",
-            "می‌تونی درباره این موضوع‌ها سؤال بپرسی",
-            "سؤال‌های پرتکرار",
-            "آخرین سؤال‌ها"
+            "id=\"ask-form\"",
+            "id=\"answer-section\"",
+            "id=\"topics\"",
+            "id=\"questions\"",
+            "id=\"books\"",
+            "id=\"trust\"",
+            "href=\"/answer.css\"",
+            "href=\"/discovery.css\"",
+            "href=\"/library.css\""
           ];
           if (!homeRes.ok || homeMarkers.some(marker => !homeHtml.includes(marker))) {
             throw new Error("Worker homepage UI is stale or unavailable");
           }
 
-          const cssRes = await fetch(base + "/styles.css", { cache: "no-store" });
+          const cssRes = await fetch(base + "/styles.css?deploy=" + cacheBust, { cache: "no-store" });
           const css = await cssRes.text();
           if (!cssRes.ok || !css.includes("color-scheme: light") || !css.includes("@media (max-width: 720px)")) {
             throw new Error("Light/mobile stylesheet verification failed");
+          }
+
+          const modularStyles = [
+            ["/answer.css", "Answer experience"],
+            ["/discovery.css", "Knowledge Discovery"],
+            ["/library.css", "Library experience"]
+          ];
+          for (const [path, marker] of modularStyles) {
+            const res = await fetch(base + path + "?deploy=" + cacheBust, { cache: "no-store" });
+            const text = await res.text();
+            if (!res.ok || !text.includes(marker)) {
+              throw new Error("Worker modular stylesheet missing: " + path);
+            }
           }
 
           const publicRes = await fetch(base + "/api/v1/home", { cache: "no-store" });
@@ -135,6 +158,7 @@ jobs:
           console.log(JSON.stringify({
             homepage: "ok",
             mobile_css: "ok",
+            modular_css: "ok",
             active_books: publicHome.library.active_books,
             active_chunks: publicHome.library.active_chunks,
             frequent_questions: publicHome.frequent_questions.length,
