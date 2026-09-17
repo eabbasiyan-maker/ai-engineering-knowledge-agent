@@ -1,0 +1,1 @@
+Phase 7 final accepted production baseline on 2026-09-17: live evaluation 9/9 PASS and Web/Telegram/API parity PASS. Conflict case uses BOOK-003 vs BOOK-010 and returns evidence_status=conflict with both sources cited.
