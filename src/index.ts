@@ -8,6 +8,7 @@ import { saveFeedback, type FeedbackInput } from "./feedback";
 import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
 import { reviewCandidate } from "./curator";
 import { getKnowledgeOverview } from "./knowledge-profile";
+import { getPublicHome } from "./home";
 import { getTelegramHealth, handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
@@ -136,6 +137,10 @@ export default {
 
       if (request.method === "GET" && url.pathname === "/health/telegram") {
         return json(await getTelegramHealth(env));
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/v1/home") {
+        return json(await getPublicHome(env));
       }
 
       if (request.method === "POST" && url.pathname === "/api/v1/ask") {
