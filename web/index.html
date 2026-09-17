@@ -8,6 +8,7 @@
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/home.css" />
+  <link rel="stylesheet" href="/discovery.css" />
   <link rel="stylesheet" href="/library.css" />
 </head>
 <body class="home-page">
@@ -93,37 +94,90 @@
     <section class="discover-section" id="topics">
       <div class="section-heading">
         <div>
-          <h2>می‌تونی درباره این موضوع‌ها سؤال بپرسی</h2>
-          <p>برای شروع لازم نیست اسم تکنیک‌ها را بلد باشی؛ از موضوعی که می‌خواهی یاد بگیری شروع کن.</p>
+          <h2>حوزه‌های دانش</h2>
+          <p>اگر هدفت را می‌دانی از یکی از مسیرهای سریع شروع کن؛ اگر نه، فهرست کامل موضوع‌ها را مرور کن.</p>
         </div>
       </div>
-      <div class="knowledge-list-card">
-        <ul class="knowledge-bullets">
-          <li><button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>AI Agent و معماری Agent</strong> — اجزا، طراحی، Tool Use و ساخت Agent از پایه</button></li>
-          <li><button type="button" data-question="RAG و GraphRAG چه فرقی دارند و هرکدام کجا استفاده می‌شوند؟"><strong>RAG، GraphRAG و جست‌وجوی دانش</strong> — Retrieval، Knowledge Graph و اتصال مدل به دانش</button></li>
-          <li><button type="button" data-question="MCP و A2A چیستند و چه زمانی استفاده می‌شوند؟"><strong>MCP، A2A و ابزارها</strong> — اتصال Agent به ابزارها و ارتباط بین Agentها</button></li>
-          <li><button type="button" data-question="Memory، Context، Planning و Reflection در Agent چه نقشی دارند؟"><strong>Memory، Context، Planning و Reflection</strong> — حافظه، زمینه، برنامه‌ریزی و بازبینی</button></li>
-          <li><button type="button" data-question="چه زمانی Multi-Agent بهتر از یک Agent است؟"><strong>Multi-Agent Systems</strong> — همکاری چند Agent، تقسیم مسئولیت و Orchestration</button></li>
-          <li><button type="button" data-question="چطور کیفیت و Reliability یک سیستم AI را ارزیابی کنیم؟"><strong>ارزیابی، Reliability و کاهش Hallucination</strong> — تست کیفیت، خطاها و رفتار قابل اتکا</button></li>
-          <li><button type="button" data-question="مهم‌ترین ریسک‌های امنیتی Agentها و MCP چیست؟"><strong>امنیت و Governance</strong> — Prompt Injection، Tool Attack، Red Teaming و Guardrail</button></li>
-          <li><button type="button" data-question="برای Production کردن Agent چه چیزهایی لازم است؟"><strong>Production، Observability و Deployment</strong> — مانیتورینگ، استقرار، هزینه و عملیات</button></li>
-          <li><button type="button" data-question="Coding Agentها، Skills و Subagentها چگونه کار می‌کنند؟"><strong>Coding Agents و Developer Workflow</strong> — Skills، Subagent، Hooks، MCP و CI/CD</button></li>
-          <li><button type="button" data-question="برای ساخت یک AI Product خوب چه چیزهایی باید اندازه‌گیری شود؟"><strong>AI Product</strong> — استراتژی محصول، Metrics، Lifecycle و تجربه کاربر</button></li>
-        </ul>
+
+      <div class="learning-paths" aria-label="مسیرهای سریع یادگیری">
+        <button class="learning-path" type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم و چه اجزایی لازم دارم؟">
+          <span class="path-label">شروع عملی</span>
+          <strong>می‌خوام Agent بسازم</strong>
+          <small>معماری، ابزارها، حافظه، Planning و Multi-Agent</small>
+        </button>
+        <button class="learning-path" type="button" data-question="RAG چیست، چه اجزایی دارد و چه زمانی باید از GraphRAG یا Knowledge Graph استفاده کنم؟">
+          <span class="path-label">دانش و جست‌وجو</span>
+          <strong>می‌خوام RAG را بفهمم</strong>
+          <small>Retrieval، GraphRAG، Knowledge Graph و اتصال مدل به دانش</small>
+        </button>
+        <button class="learning-path" type="button" data-question="چطور کیفیت، امنیت و Reliability یک سیستم AI را ارزیابی و بهتر کنم؟">
+          <span class="path-label">اعتمادپذیری</span>
+          <strong>می‌خوام سیستم قابل‌اتکا بسازم</strong>
+          <small>Evaluation، Hallucination، Guardrail، Security و Red Teaming</small>
+        </button>
+        <button class="learning-path" type="button" data-question="برای Production کردن و مدیریت یک AI Product چه معماری، Metrics، Observability و کنترل هزینه‌ای لازم است؟">
+          <span class="path-label">از ساخت تا محصول</span>
+          <strong>می‌خوام به Production برسم</strong>
+          <small>Deployment، Observability، هزینه، Metrics و Lifecycle محصول</small>
+        </button>
+      </div>
+
+      <div class="topic-index">
+        <div class="topic-index-head">
+          <h3>همه حوزه‌ها</h3>
+          <p>موضوع‌ها گروه‌بندی شده‌اند تا سریع‌تر چیزی را که دنبالش هستی پیدا کنی.</p>
+        </div>
+
+        <div class="topic-groups">
+          <section class="topic-group" aria-labelledby="topic-agent">
+            <h4 id="topic-agent">ساخت و Orchestration Agent</h4>
+            <ul class="topic-list">
+              <li><button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>AI Agent و معماری Agent</strong><span>اجزا، طراحی، Tool Use و ساخت Agent از پایه</span></button></li>
+              <li><button type="button" data-question="Memory، Context، Planning و Reflection در Agent چه نقشی دارند؟"><strong>Memory، Context، Planning و Reflection</strong><span>حافظه، زمینه، برنامه‌ریزی و بازبینی رفتار Agent</span></button></li>
+              <li><button type="button" data-question="چه زمانی Multi-Agent بهتر از یک Agent است؟"><strong>Multi-Agent Systems</strong><span>همکاری چند Agent، تقسیم مسئولیت و Orchestration</span></button></li>
+              <li><button type="button" data-question="Coding Agentها، Skills و Subagentها چگونه کار می‌کنند؟"><strong>Coding Agents و Developer Workflow</strong><span>Skills، Subagent، Hooks، MCP و CI/CD</span></button></li>
+            </ul>
+          </section>
+
+          <section class="topic-group" aria-labelledby="topic-knowledge">
+            <h4 id="topic-knowledge">دانش، Retrieval و ابزارها</h4>
+            <ul class="topic-list">
+              <li><button type="button" data-question="RAG و GraphRAG چه فرقی دارند و هرکدام کجا استفاده می‌شوند؟"><strong>RAG، GraphRAG و جست‌وجوی دانش</strong><span>Retrieval، Knowledge Graph و اتصال مدل به دانش معتبر</span></button></li>
+              <li><button type="button" data-question="MCP و A2A چیستند و چه زمانی استفاده می‌شوند؟"><strong>MCP، A2A و ابزارها</strong><span>اتصال Agent به Toolها و ارتباط ساختاریافته بین Agentها</span></button></li>
+            </ul>
+          </section>
+
+          <section class="topic-group" aria-labelledby="topic-quality">
+            <h4 id="topic-quality">کیفیت، امنیت و عملیات</h4>
+            <ul class="topic-list">
+              <li><button type="button" data-question="چطور کیفیت و Reliability یک سیستم AI را ارزیابی کنیم؟"><strong>ارزیابی، Reliability و کاهش Hallucination</strong><span>تست کیفیت، خطاها و سنجش رفتار قابل‌اتکا</span></button></li>
+              <li><button type="button" data-question="مهم‌ترین ریسک‌های امنیتی Agentها و MCP چیست؟"><strong>امنیت و Governance</strong><span>Prompt Injection، Tool Attack، Red Teaming و Guardrail</span></button></li>
+              <li><button type="button" data-question="برای Production کردن Agent چه چیزهایی لازم است؟"><strong>Production، Observability و Deployment</strong><span>مانیتورینگ، استقرار، هزینه و عملیات پایدار</span></button></li>
+            </ul>
+          </section>
+
+          <section class="topic-group" aria-labelledby="topic-product">
+            <h4 id="topic-product">محصول و تصمیم‌گیری</h4>
+            <ul class="topic-list">
+              <li><button type="button" data-question="برای ساخت یک AI Product خوب چه چیزهایی باید اندازه‌گیری شود؟"><strong>AI Product</strong><span>استراتژی محصول، Metrics، Lifecycle و تجربه کاربر</span></button></li>
+            </ul>
+            <div class="discovery-tip">با انتخاب هر موضوع، یک سؤال پیشنهادی داخل جست‌وجو قرار می‌گیرد و می‌توانی قبل از ارسال آن را تغییر بدهی.</div>
+          </section>
+        </div>
       </div>
     </section>
 
     <section class="discover-section" id="questions" aria-label="سؤال‌های پیشنهادی">
       <div class="section-heading">
         <div>
-          <h2>اگر نمی‌دونی از کجا شروع کنی</h2>
-          <p>یکی از سؤال‌های پرتکرار یا نمونه سؤال‌های عمومی اخیر را انتخاب کن.</p>
+          <h2>اگر هنوز نمی‌دونی از کجا شروع کنی</h2>
+          <p>یکی از سؤال‌های پرتکرار یا نمونه سؤال‌های عمومی اخیر را انتخاب کن؛ سؤال یکتای کاربران در این بخش منتشر نمی‌شود.</p>
         </div>
       </div>
 
       <div class="questions-grid">
         <article class="question-panel">
-          <div class="panel-head"><div><span class="panel-icon hot">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p></div></div></div>
+          <div class="panel-head"><div><span class="panel-icon hot">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر تکرار شده‌اند</p></div></div></div>
           <div id="frequent-questions" class="question-list">
             <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
             <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
@@ -133,7 +187,7 @@
         </article>
 
         <article class="question-panel">
-          <div class="panel-head"><div><span class="panel-icon recent">◷</span><div><h3>آخرین سؤال‌ها</h3><p>نمونه سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p></div></div></div>
+          <div class="panel-head"><div><span class="panel-icon recent">◷</span><div><h3>نمونه سؤال‌های اخیر</h3><p>نمونه‌های عمومی و امن از سؤال‌های جدیدتر</p></div></div></div>
           <div id="recent-questions" class="question-list">
             <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
             <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
