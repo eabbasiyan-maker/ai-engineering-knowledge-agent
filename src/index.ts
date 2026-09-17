@@ -7,6 +7,7 @@ import { answerQuestion, type AskRequest } from "./agent";
 import { saveFeedback, type FeedbackInput } from "./feedback";
 import { getAnalyticsSummary, recordAgentRequest } from "./analytics";
 import { reviewCandidate } from "./curator";
+import { getKnowledgeOverview } from "./knowledge-profile";
 import { getTelegramHealth, handleTelegramUpdate, verifyTelegramWebhook, type TelegramUpdate } from "./telegram";
 
 const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
@@ -211,6 +212,11 @@ export default {
       if (request.method === "GET" && url.pathname === "/admin/analytics/summary") {
         const days = Number(url.searchParams.get("days") ?? "30");
         return json(await getAnalyticsSummary(env, days));
+      }
+
+      if (request.method === "GET" && url.pathname === "/admin/knowledge/overview") {
+        const limit = Number(url.searchParams.get("limit") ?? "10");
+        return json(await getKnowledgeOverview(env, limit));
       }
 
       if (url.pathname === "/admin/sources" && request.method === "GET") {
