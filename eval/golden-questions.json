@@ -64,11 +64,11 @@
     "requires_inline_citation": false
   },
   {
-    "id": "conflict-workflow-autonomy",
-    "question": "Compare these two approved-source positions explicitly: Production-Grade Agentic AI says 'Why Workflows Are Antithetical to Autonomy', while Design Multi-Agent AI Systems Using MCP and A2A describes dynamic workflow execution, hybrid orchestration, and proactive autonomous monitoring. Are these positions materially in conflict? Explain the disagreement and cite both sources.",
+    "id": "conflict-agent-definition",
+    "question": "Compare these two approved-source definitions explicitly. An Illustrated Guide to AI Agents describes an LLM-backed agent as a reasoning LLM augmented with memory, tools, planning, and reflection. Production-Grade Agentic AI says 'Real agents aren't LLM + Tools' and defines real agents as persistent autonomous distributed applications that maintain state and pursue goals independently. Are these definitions materially in conflict about what counts as an AI agent? Explain the disagreement and cite both sources.",
     "expected_status": ["conflict"],
-    "expected_source_ids": ["BOOK-010", "BOOK-011"],
-    "required_answer_terms": ["workflow", "autonomy"],
+    "expected_source_ids": ["BOOK-003", "BOOK-010"],
+    "required_answer_terms": ["agent", "LLM"],
     "requires_inline_citation": true
   }
 ]
