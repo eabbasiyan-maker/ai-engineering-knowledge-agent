@@ -21,6 +21,10 @@
       <label for="token">Admin Token</label>
       <input id="token" type="password" autocomplete="off"
         style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+      <p class="muted" style="margin-top:8px">توکن ذخیره‌شده در همین مرورگر به‌صورت خودکار استفاده می‌شود.</p>
+      <div class="actions" style="margin-top:8px">
+        <button id="clear-token" class="ghost" type="button">پاک کردن توکن ذخیره‌شده</button>
+      </div>
 
       <div class="actions">
         <button id="load-sources" class="ghost" type="button">بارگذاری منابع</button>
@@ -57,7 +61,7 @@
     </section>
 
     <section id="error-box" class="card error hidden"></section>
-  <section class="card ask-card" style="margin-top:18px">
+    <section class="card ask-card" style="margin-top:18px">
       <p class="eyebrow">BATCH READY BUNDLE</p>
       <h2>ورود گروهی کتاب‌های آماده‌شده</h2>
       <p class="subtitle">یک فایل ZIP آماده‌شده را انتخاب کن تا چند کتاب پشت‌سرهم وارد و فعال شوند.</p>
@@ -75,6 +79,36 @@
     </section>
   </main>
 
+  <script>
+    (() => {
+      const storageKey = "ai-engineering-admin-token";
+      const token = document.getElementById("token");
+      const clear = document.getElementById("clear-token");
+      if (!token) return;
+
+      try {
+        token.value = localStorage.getItem(storageKey) || "";
+      } catch {}
+
+      const persist = () => {
+        try {
+          const value = token.value.trim();
+          if (value) localStorage.setItem(storageKey, value);
+          else localStorage.removeItem(storageKey);
+        } catch {}
+      };
+
+      token.addEventListener("input", persist);
+      token.addEventListener("change", persist);
+      window.addEventListener("pagehide", persist);
+
+      clear?.addEventListener("click", () => {
+        token.value = "";
+        try { localStorage.removeItem(storageKey); } catch {}
+        token.focus();
+      });
+    })();
+  </script>
   <script type="module" src="/ingest-app.js"></script>
   <script type="module" src="/ingest-batch.js"></script>
 </body>
