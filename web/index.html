@@ -8,6 +8,7 @@
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/home.css" />
+  <link rel="stylesheet" href="/library.css" />
 </head>
 <body class="home-page">
   <header class="site-header">
@@ -96,7 +97,6 @@
           <p>برای شروع لازم نیست اسم تکنیک‌ها را بلد باشی؛ از موضوعی که می‌خواهی یاد بگیری شروع کن.</p>
         </div>
       </div>
-
       <div class="knowledge-list-card">
         <ul class="knowledge-bullets">
           <li><button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>AI Agent و معماری Agent</strong> — اجزا، طراحی، Tool Use و ساخت Agent از پایه</button></li>
@@ -158,33 +158,71 @@
     <section class="books-section" id="books">
       <div class="books-head">
         <div>
-          <h2>کتاب‌های کتابخانه و چرا مهم‌اند</h2>
-          <p>۶ کتاب «مرجع اصلی» پایه پاسخ‌ها هستند و ۵ کتاب «تکمیلی» برای پوشش تخصصی‌تر استفاده می‌شوند.</p>
+          <h2>کتاب‌های کتابخانه</h2>
+          <p>۱۱ منبع فعال داریم: ۶ مرجع اصلی برای پایه پاسخ‌ها و ۵ منبع تکمیلی برای پوشش تخصصی‌تر. برای اینکه صفحه شلوغ نشود، ابتدا چند منبع شاخص را می‌بینی.</p>
         </div>
       </div>
 
-      <div class="book-group">
-        <div class="book-group-title">مرجع‌های اصلی <span>Grade A</span></div>
-        <ul class="book-list">
-          <li><div class="book-title-row"><strong>Building Reliable AI Systems</strong><span class="book-meta">Manning · 2026</span></div><span class="book-why">مهم برای Reliability، RAG، Evaluation و آماده‌سازی سیستم‌های AI برای Production.</span></li>
-          <li><div class="book-title-row"><strong>Build an AI Agent (From Scratch)</strong><span class="book-meta">Manning · 2026</span></div><span class="book-why">Agent را از پایه و مستقل از Framework توضیح می‌دهد؛ از Tool Use و Memory تا Planning، Reflection و Multi-Agent.</span></li>
-          <li><div class="book-title-row"><strong>An Illustrated Guide to AI Agents</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">برای ساخت Mental Model روشن از Agentها، ابزارها، حافظه، Reasoning و Multi-Agent بسیار مهم است.</span></li>
-          <li><div class="book-title-row"><strong>Agentic GraphRAG</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">منبع تخصصی GraphRAG، Knowledge Graph و Agentic Retrieval برای سؤال‌های پیشرفته‌تر RAG.</span></li>
-          <li><div class="book-title-row"><strong>Practical Multi-Agent AI Systems</strong><span class="book-meta">Wiley · 2026</span></div><span class="book-why">پوشش Production-oriented برای Multi-Agent، MCP، Context Engineering، Security، Observability و Deployment.</span></li>
-          <li><div class="book-title-row"><strong>Breaking the Model Context Protocol</strong><span class="book-meta">Apress · 2026</span></div><span class="book-why">مرجع امنیت MCP؛ Threat Model، Prompt Injection، Tool Attack، Red Teaming و دفاع.</span></li>
-        </ul>
+      <div class="library-overview" aria-label="خلاصه کتابخانه">
+        <div class="library-stat"><strong>۱۱ کتاب فعال</strong><span>همه منابع تأییدشده و قابل جست‌وجو هستند</span></div>
+        <div class="library-stat"><strong>۶ مرجع اصلی</strong><span>پایه پاسخ‌های عمومی و معماری AI</span></div>
+        <div class="library-stat"><strong>۵ منبع تکمیلی</strong><span>برای موضوع‌های تخصصی‌تر و عملیاتی</span></div>
       </div>
 
-      <div class="book-group">
-        <div class="book-group-title">منابع تکمیلی <span>Grade B</span></div>
-        <ul class="book-list">
-          <li><div class="book-title-row"><strong>The Claude Code Operating Model</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">برای Coding Agent، Skills، Subagent، Hooks، MCP، Governance و CI/CD مفید است.</span></li>
-          <li><div class="book-title-row"><strong>Architecting Production-Ready Gen AI and Agentic AI Systems</strong><span class="book-meta">Leanpub · 2026</span></div><span class="book-why">دید معماری Vendor-neutral برای Production، RAG، Security، Governance، FinOps و Observability.</span></li>
-          <li><div class="book-title-row"><strong>Production-Grade Agentic AI</strong><span class="book-meta">Leanpub · 2025</span></div><span class="book-why">تمرکز عملی بر Memory، Orchestration، Observability، Deployment و سیستم‌های Multi-model.</span></li>
-          <li><div class="book-title-row"><strong>Design Multi-Agent AI Systems Using MCP and A2A</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">منبع Hands-on برای Multi-Agent، MCP، A2A، Memory، Tool Use و Deployment.</span></li>
-          <li><div class="book-title-row"><strong>Building AI-Powered Products</strong><span class="book-meta">O’Reilly · 2025</span></div><span class="book-why">دید Product Management برای Strategy، Metrics و Lifecycle محصولات مبتنی بر AI.</span></li>
-        </ul>
+      <h3 class="library-subhead">چند منبع شاخص برای شروع</h3>
+      <div class="featured-books">
+        <article class="featured-book">
+          <span class="book-kicker">Reliability و Production</span>
+          <h3>Building Reliable AI Systems</h3>
+          <span class="book-meta">Manning · 2026</span>
+          <span class="book-why">برای فهم Reliability، RAG، Evaluation و آماده‌سازی سیستم‌های AI برای محیط Production مهم است.</span>
+        </article>
+
+        <article class="featured-book">
+          <span class="book-kicker">ساخت Agent از پایه</span>
+          <h3>Build an AI Agent (From Scratch)</h3>
+          <span class="book-meta">Manning · 2026</span>
+          <span class="book-why">Agent را مستقل از Framework توضیح می‌دهد؛ از Tool Use و Memory تا Planning، Reflection و Multi-Agent.</span>
+        </article>
+
+        <article class="featured-book">
+          <span class="book-kicker">Multi-Agent و عملیات</span>
+          <h3>Practical Multi-Agent AI Systems</h3>
+          <span class="book-meta">Wiley · 2026</span>
+          <span class="book-why">برای Multi-Agent، MCP، Context Engineering، Security، Observability و Deployment پوشش عملی دارد.</span>
+        </article>
+
+        <article class="featured-book">
+          <span class="book-kicker">امنیت MCP</span>
+          <h3>Breaking the Model Context Protocol</h3>
+          <span class="book-meta">Apress · 2026</span>
+          <span class="book-why">منبع تخصصی Threat Model، Prompt Injection، Tool Attack، Red Teaming و دفاع در MCP است.</span>
+        </article>
       </div>
+
+      <details class="book-catalog">
+        <summary>مشاهده ۷ کتاب دیگر</summary>
+        <div class="book-catalog-body">
+          <div class="book-group">
+            <div class="book-group-title">سایر منابع اصلی <span>۲ کتاب</span></div>
+            <ul class="book-list">
+              <li><div class="book-title-row"><strong>An Illustrated Guide to AI Agents</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">برای ساخت Mental Model روشن از Agentها، ابزارها، حافظه، Reasoning و Multi-Agent مهم است.</span></li>
+              <li><div class="book-title-row"><strong>Agentic GraphRAG</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">منبع تخصصی GraphRAG، Knowledge Graph و Agentic Retrieval برای سؤال‌های پیشرفته‌تر RAG.</span></li>
+            </ul>
+          </div>
+
+          <div class="book-group">
+            <div class="book-group-title">منابع تکمیلی <span>۵ کتاب</span></div>
+            <ul class="book-list">
+              <li><div class="book-title-row"><strong>The Claude Code Operating Model</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">برای Coding Agent، Skills، Subagent، Hooks، MCP، Governance و CI/CD مفید است.</span></li>
+              <li><div class="book-title-row"><strong>Architecting Production-Ready Gen AI and Agentic AI Systems</strong><span class="book-meta">Leanpub · 2026</span></div><span class="book-why">دید معماری Vendor-neutral برای Production، RAG، Security، Governance، FinOps و Observability.</span></li>
+              <li><div class="book-title-row"><strong>Production-Grade Agentic AI</strong><span class="book-meta">Leanpub · 2025</span></div><span class="book-why">تمرکز عملی بر Memory، Orchestration، Observability، Deployment و سیستم‌های Multi-model.</span></li>
+              <li><div class="book-title-row"><strong>Design Multi-Agent AI Systems Using MCP and A2A</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">منبع Hands-on برای Multi-Agent، MCP، A2A، Memory، Tool Use و Deployment.</span></li>
+              <li><div class="book-title-row"><strong>Building AI-Powered Products</strong><span class="book-meta">O’Reilly · 2025</span></div><span class="book-why">دید Product Management برای Strategy، Metrics و Lifecycle محصولات مبتنی بر AI.</span></li>
+            </ul>
+          </div>
+        </div>
+      </details>
     </section>
   </main>
 
