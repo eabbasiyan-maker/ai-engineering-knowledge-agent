@@ -46,8 +46,7 @@ function makeCard(title, value, detail) {
   heading.className = "source-title";
   heading.textContent = title;
   const number = document.createElement("div");
-  number.style.fontSize = "28px";
-  number.style.fontWeight = "800";
+  number.className = "metric-value";
   number.textContent = String(value ?? "-");
   box.append(heading, number);
   if (detail) {
@@ -133,7 +132,7 @@ function renderPlainSummary(data) {
   root.replaceChildren();
   for (const line of lines) {
     const p = document.createElement("p");
-    p.style.margin = "4px 0";
+    p.className = "summary-line";
     p.textContent = line;
     root.append(p);
   }
