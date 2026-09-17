@@ -1,5 +1,6 @@
 import type { Env } from "./env";
 import { getSource } from "./catalog";
+import { recordVersionKnowledgeProfile } from "./knowledge-profile";
 
 export interface PreparedChunk {
   chunk_id: string;
@@ -152,6 +153,28 @@ export async function completeVersion(
 
   if (!count?.count) throw new Error("Cannot activate an empty source version");
 
+  const previousVersion = await env.DB.prepare(
+    `SELECT version_id
+     FROM source_versions
+     WHERE source_id = ?
+       AND version_id <> ?
+       AND status = 'active'
+       AND activated_at IS NOT NULL
+     ORDER BY datetime(activated_at) DESC
+     LIMIT 1`
+  ).bind(sourceId, versionId).first<{ version_id: string }>();
+
+  // Build the domain profile and the content-hash diff before activation.
+  // The change row is only shown later if source_versions.activated_at is set,
+  // so an activation failure cannot appear as a successful knowledge update.
+  const knowledgeProfile = await recordVersionKnowledgeProfile(
+    env,
+    sourceId,
+    versionId,
+    previousVersion?.version_id ?? null,
+    "activation"
+  );
+
   const manifest = {
     schemaVersion: "1.1",
     sourceId,
@@ -223,6 +246,14 @@ export async function completeVersion(
 
   return {
     ...manifest,
-    staleVectorsDeleteRequested: staleVectorIds.length
+    staleVectorsDeleteRequested: staleVectorIds.length,
+    knowledge_profile: {
+      change_type: knowledgeProfile.change_type,
+      previous_version_id: knowledgeProfile.previous_version_id,
+      domain_count: knowledgeProfile.domains.length,
+      added_chunk_count: knowledgeProfile.added_chunk_count,
+      removed_chunk_count: knowledgeProfile.removed_chunk_count,
+      unchanged_chunk_count: knowledgeProfile.unchanged_chunk_count
+    }
   };
 }
