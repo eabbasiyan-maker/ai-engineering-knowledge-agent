@@ -8,6 +8,47 @@
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/home.css" />
+  <style>
+    .knowledge-list-card,
+    .books-section {
+      border: 1px solid var(--home-line);
+      background: var(--home-surface);
+      box-shadow: 0 10px 30px rgba(45,93,150,.07);
+      border-radius: 20px;
+    }
+    .knowledge-list-card { padding: 18px 22px; }
+    .knowledge-bullets { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .knowledge-bullets li { position: relative; padding: 13px 22px 13px 0; border-bottom: 1px solid #eef3f9; color: #294765; line-height: 1.75; }
+    .knowledge-bullets li::before { content: "•"; position: absolute; right: 3px; top: 11px; color: var(--home-blue); font-size: 23px; }
+    .knowledge-bullets strong { color: #152845; }
+    .knowledge-bullets button { border: 0; background: transparent; padding: 0; color: inherit; text-align: right; cursor: pointer; }
+    .knowledge-bullets button:hover strong { color: var(--home-blue); }
+
+    .books-section { margin-top: 18px; padding: 22px; }
+    .books-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+    .books-head h2 { margin: 0; color: #12233d; font-size: 24px; }
+    .books-head p { margin: 6px 0 0; color: var(--home-muted); line-height: 1.8; }
+    .book-group + .book-group { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e8eef6; }
+    .book-group-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #183553; font-weight: 800; }
+    .book-group-title span { padding: 5px 9px; border-radius: 999px; background: #eaf4ff; color: #1672d8; font-size: 11px; }
+    .book-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .book-list li { padding: 12px 0; border-bottom: 1px solid #eef3f9; }
+    .book-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .book-title-row strong { color: #152845; font-size: 14px; direction: ltr; unicode-bidi: isolate; }
+    .book-meta { color: #8a9ab0; font-size: 11px; }
+    .book-why { display: block; margin-top: 5px; color: #617994; font-size: 12px; line-height: 1.7; }
+
+    @media (max-width: 680px) {
+      .knowledge-bullets,
+      .book-list { grid-template-columns: 1fr; }
+      .knowledge-list-card,
+      .books-section { padding: 16px; border-radius: 16px; }
+      .books-head { display: block; }
+      .books-head h2 { font-size: 21px; }
+      .book-title-row { display: block; }
+      .book-meta { display: block; margin-top: 3px; }
+    }
+  </style>
 </head>
 <body class="home-page">
   <header class="site-header">
@@ -23,6 +64,7 @@
       <nav class="main-nav" aria-label="ناوبری اصلی">
         <a class="active" href="#ask">صفحه اصلی</a>
         <a href="#topics">حوزه‌های دانش</a>
+        <a href="#books">کتاب‌ها</a>
         <a href="#about">درباره ما</a>
       </nav>
 
@@ -47,8 +89,7 @@
 
       <section class="ask-surface">
         <form id="ask-form" class="ask-form">
-          <input id="question" name="question" type="text" autocomplete="off"
-            placeholder="سؤال خود را بنویسید..." required />
+          <input id="question" name="question" type="text" autocomplete="off" placeholder="سؤال خود را بنویسید..." required />
           <button id="ask-button" class="primary ask-submit" type="submit">پرسیدن <span>◁</span></button>
         </form>
         <div class="suggestion-chips" aria-label="نمونه سؤال‌ها">
@@ -60,22 +101,15 @@
     </section>
 
     <section id="loading" class="home-card loading hidden" aria-live="polite">
-      <span class="spinner"></span>
-      <span>در حال جست‌وجو در دانش تأییدشده…</span>
+      <span class="spinner"></span><span>در حال جست‌وجو در دانش تأییدشده…</span>
     </section>
     <section id="error-box" class="home-card error hidden" role="alert"></section>
 
     <section id="answer-section" class="answer-layout hidden">
       <article class="home-card answer-card">
-        <div class="answer-question-wrap">
-          <span class="mini-label">سؤال شما</span>
-          <p id="answered-question" class="answered-question"></p>
-        </div>
+        <div class="answer-question-wrap"><span class="mini-label">سؤال شما</span><p id="answered-question" class="answered-question"></p></div>
         <div class="answer-head">
-          <div>
-            <span class="mini-label">پاسخ بر اساس دانش تأییدشده</span>
-            <div id="badges" class="badges"></div>
-          </div>
+          <div><span class="mini-label">پاسخ بر اساس دانش تأییدشده</span><div id="badges" class="badges"></div></div>
           <button id="copy-button" class="icon-button" type="button">کپی پاسخ</button>
         </div>
         <div id="answer" class="answer-text" dir="auto"></div>
@@ -89,10 +123,7 @@
 
       <section class="home-card sources-card">
         <div class="sources-head">
-          <div>
-            <span class="mini-label">منابع استفاده‌شده</span>
-            <p class="muted">فقط منابع فعال و تأییدشده در پاسخ استفاده می‌شوند.</p>
-          </div>
+          <div><span class="mini-label">منابع استفاده‌شده</span><p class="muted">فقط منابع فعال و تأییدشده در پاسخ استفاده می‌شوند.</p></div>
           <span id="source-count" class="count"></span>
         </div>
         <div id="sources" class="sources"></div>
@@ -103,45 +134,61 @@
       <div class="section-heading">
         <div>
           <h2>می‌تونی درباره این موضوع‌ها سؤال بپرسی</h2>
-          <p>اگر جونیور هستی، از یکی از این چهار مسیر شروع کن.</p>
+          <p>برای شروع لازم نیست اسم تکنیک‌ها را بلد باشی؛ از موضوعی که می‌خواهی یاد بگیری شروع کن.</p>
         </div>
       </div>
 
-      <div id="topic-cards" class="topic-grid">
-        <button class="topic-card topic-agents" type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟">
-          <span class="topic-icon">👥</span>
-          <strong>ساخت Agent</strong>
-          <small>طراحی Agent، ابزارها و حافظه</small>
-        </button>
-        <button class="topic-card topic-rag" type="button" data-question="RAG چیست و چطور جست‌وجوی دانش را بهتر می‌کند؟">
-          <span class="topic-icon">▰</span>
-          <strong>RAG و جست‌وجو</strong>
-          <small>اتصال دانش و جست‌وجوی بهتر</small>
-        </button>
-        <button class="topic-card topic-prompt" type="button" data-question="چطور یک پرامپت واضح و مؤثر بنویسم؟">
-          <span class="topic-icon">✎</span>
-          <strong>پرامپت‌نویسی</strong>
-          <small>نوشتن دستور واضح برای مدل</small>
-        </button>
-        <button class="topic-card topic-eval" type="button" data-question="چطور کیفیت پاسخ مدل را ارزیابی و تست کنیم؟">
-          <span class="topic-icon">▥</span>
-          <strong>ارزیابی و تست</strong>
-          <small>بررسی کیفیت پاسخ و خطاها</small>
-        </button>
+      <div class="knowledge-list-card">
+        <ul class="knowledge-bullets">
+          <li><button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>AI Agent و معماری Agent</strong> — اجزا، طراحی، Tool Use و ساخت Agent از پایه</button></li>
+          <li><button type="button" data-question="RAG و GraphRAG چه فرقی دارند و هرکدام کجا استفاده می‌شوند؟"><strong>RAG، GraphRAG و جست‌وجوی دانش</strong> — Retrieval، Knowledge Graph و اتصال مدل به دانش</button></li>
+          <li><button type="button" data-question="MCP و A2A چیستند و چه زمانی استفاده می‌شوند؟"><strong>MCP، A2A و ابزارها</strong> — اتصال Agent به ابزارها و ارتباط بین Agentها</button></li>
+          <li><button type="button" data-question="Memory، Context، Planning و Reflection در Agent چه نقشی دارند؟"><strong>Memory، Context، Planning و Reflection</strong> — حافظه، زمینه، برنامه‌ریزی و بازبینی</button></li>
+          <li><button type="button" data-question="چه زمانی Multi-Agent بهتر از یک Agent است؟"><strong>Multi-Agent Systems</strong> — همکاری چند Agent، تقسیم مسئولیت و Orchestration</button></li>
+          <li><button type="button" data-question="چطور کیفیت و Reliability یک سیستم AI را ارزیابی کنیم؟"><strong>ارزیابی، Reliability و کاهش Hallucination</strong> — تست کیفیت، خطاها و رفتار قابل اتکا</button></li>
+          <li><button type="button" data-question="مهم‌ترین ریسک‌های امنیتی Agentها و MCP چیست؟"><strong>امنیت و Governance</strong> — Prompt Injection، Tool Attack، Red Teaming و Guardrail</button></li>
+          <li><button type="button" data-question="برای Production کردن Agent چه چیزهایی لازم است؟"><strong>Production، Observability و Deployment</strong> — مانیتورینگ، استقرار، هزینه و عملیات</button></li>
+          <li><button type="button" data-question="Coding Agentها، Skills و Subagentها چگونه کار می‌کنند؟"><strong>Coding Agents و Developer Workflow</strong> — Skills، Subagent، Hooks، MCP و CI/CD</button></li>
+          <li><button type="button" data-question="برای ساخت یک AI Product خوب چه چیزهایی باید اندازه‌گیری شود؟"><strong>AI Product</strong> — استراتژی محصول، Metrics، Lifecycle و تجربه کاربر</button></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="books-section" id="books">
+      <div class="books-head">
+        <div>
+          <h2>کتاب‌های کتابخانه و چرا مهم‌اند</h2>
+          <p>۶ کتاب «مرجع اصلی» پایه پاسخ‌ها هستند و ۵ کتاب «تکمیلی» برای پوشش تخصصی‌تر استفاده می‌شوند.</p>
+        </div>
+      </div>
+
+      <div class="book-group">
+        <div class="book-group-title">مرجع‌های اصلی <span>Grade A</span></div>
+        <ul class="book-list">
+          <li><div class="book-title-row"><strong>Building Reliable AI Systems</strong><span class="book-meta">Manning · 2026</span></div><span class="book-why">مهم برای Reliability، RAG، Evaluation و آماده‌سازی سیستم‌های AI برای Production.</span></li>
+          <li><div class="book-title-row"><strong>Build an AI Agent (From Scratch)</strong><span class="book-meta">Manning · 2026</span></div><span class="book-why">Agent را از پایه و مستقل از Framework توضیح می‌دهد؛ از Tool Use و Memory تا Planning، Reflection و Multi-Agent.</span></li>
+          <li><div class="book-title-row"><strong>An Illustrated Guide to AI Agents</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">برای ساخت Mental Model روشن از Agentها، ابزارها، حافظه، Reasoning و Multi-Agent بسیار مهم است.</span></li>
+          <li><div class="book-title-row"><strong>Agentic GraphRAG</strong><span class="book-meta">O’Reilly · 2026</span></div><span class="book-why">منبع تخصصی GraphRAG، Knowledge Graph و Agentic Retrieval برای سؤال‌های پیشرفته‌تر RAG.</span></li>
+          <li><div class="book-title-row"><strong>Practical Multi-Agent AI Systems</strong><span class="book-meta">Wiley · 2026</span></div><span class="book-why">پوشش Production-oriented برای Multi-Agent، MCP، Context Engineering، Security، Observability و Deployment.</span></li>
+          <li><div class="book-title-row"><strong>Breaking the Model Context Protocol</strong><span class="book-meta">Apress · 2026</span></div><span class="book-why">مرجع امنیت MCP؛ Threat Model، Prompt Injection، Tool Attack، Red Teaming و دفاع.</span></li>
+        </ul>
+      </div>
+
+      <div class="book-group">
+        <div class="book-group-title">منابع تکمیلی <span>Grade B</span></div>
+        <ul class="book-list">
+          <li><div class="book-title-row"><strong>The Claude Code Operating Model</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">برای Coding Agent، Skills، Subagent، Hooks، MCP، Governance و CI/CD مفید است.</span></li>
+          <li><div class="book-title-row"><strong>Architecting Production-Ready Gen AI and Agentic AI Systems</strong><span class="book-meta">Leanpub · 2026</span></div><span class="book-why">دید معماری Vendor-neutral برای Production، RAG، Security، Governance، FinOps و Observability.</span></li>
+          <li><div class="book-title-row"><strong>Production-Grade Agentic AI</strong><span class="book-meta">Leanpub · 2025</span></div><span class="book-why">تمرکز عملی بر Memory، Orchestration، Observability، Deployment و سیستم‌های Multi-model.</span></li>
+          <li><div class="book-title-row"><strong>Design Multi-Agent AI Systems Using MCP and A2A</strong><span class="book-meta">Packt · 2026</span></div><span class="book-why">منبع Hands-on برای Multi-Agent، MCP، A2A، Memory، Tool Use و Deployment.</span></li>
+          <li><div class="book-title-row"><strong>Building AI-Powered Products</strong><span class="book-meta">O’Reilly · 2025</span></div><span class="book-why">دید Product Management برای Strategy، Metrics و Lifecycle محصولات مبتنی بر AI.</span></li>
+        </ul>
       </div>
     </section>
 
     <section class="questions-grid" aria-label="سؤال‌های پیشنهادی">
       <article class="question-panel">
-        <div class="panel-head">
-          <div>
-            <span class="panel-icon hot">●</span>
-            <div>
-              <h3>سؤال‌های پرتکرار</h3>
-              <p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p>
-            </div>
-          </div>
-        </div>
+        <div class="panel-head"><div><span class="panel-icon hot">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p></div></div></div>
         <div id="frequent-questions" class="question-list">
           <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
           <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
@@ -151,15 +198,7 @@
       </article>
 
       <article class="question-panel">
-        <div class="panel-head">
-          <div>
-            <span class="panel-icon recent">◷</span>
-            <div>
-              <h3>آخرین سؤال‌ها</h3>
-              <p>نمونه سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p>
-            </div>
-          </div>
-        </div>
+        <div class="panel-head"><div><span class="panel-icon recent">◷</span><div><h3>آخرین سؤال‌ها</h3><p>نمونه سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p></div></div></div>
         <div id="recent-questions" class="question-list">
           <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
           <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
@@ -170,30 +209,14 @@
     </section>
 
     <section class="stats-strip" aria-label="وضعیت کتابخانه">
-      <div class="stat-item">
-        <span class="stat-icon">▤</span>
-        <div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div>
-      </div>
-      <div class="stat-item">
-        <span class="stat-icon">▰</span>
-        <div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div>
-      </div>
-      <div class="stat-item">
-        <span class="stat-icon">□</span>
-        <div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div>
-      </div>
+      <div class="stat-item"><span class="stat-icon">▤</span><div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div></div>
+      <div class="stat-item"><span class="stat-icon">▰</span><div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div></div>
+      <div class="stat-item"><span class="stat-icon">□</span><div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div></div>
     </section>
 
     <section id="about" class="trust-strip">
-      <div>
-        <h2>چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2>
-        <p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p>
-      </div>
-      <div class="trust-badges">
-        <span>✓ مستند</span>
-        <span>! مدرک ناکافی</span>
-        <span>≠ اختلاف منابع</span>
-      </div>
+      <div><h2>چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2><p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p></div>
+      <div class="trust-badges"><span>✓ مستند</span><span>! مدرک ناکافی</span><span>≠ اختلاف منابع</span></div>
     </section>
   </main>
 
