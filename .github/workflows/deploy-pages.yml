@@ -58,14 +58,13 @@ jobs:
           throw new Error("website verification failed after retries: " + last);
           NODE
 
-
       - name: Verify mobile admin and ingestion tools
         shell: bash
         run: |
           node --input-type=module <<'NODE'
           const base = "https://ai-engineering-knowledge-agent-web.pages.dev";
           const checks = [
-            [base + "/admin.html", "ADMIN ANALYTICS"],
+            [base + "/admin.html", "AGENT HEALTH & USAGE"],
             [base + "/ingest.html", "MOBILE INGESTION"],
             [base + "/ingest-app.js", "completeVersion"],
             [base + "/ingest-pdf.js", "pdfjs-dist"],
