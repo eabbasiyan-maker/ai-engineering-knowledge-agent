@@ -3,45 +3,75 @@ const API_BASE = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev
 const form = document.querySelector("#ask-form");
 const question = document.querySelector("#question");
 const askButton = document.querySelector("#ask-button");
-const clearButton = document.querySelector("#clear-button");
 const loading = document.querySelector("#loading");
 const errorBox = document.querySelector("#error-box");
 const answerSection = document.querySelector("#answer-section");
 const answerEl = document.querySelector("#answer");
+const answeredQuestion = document.querySelector("#answered-question");
 const badges = document.querySelector("#badges");
 const sourcesEl = document.querySelector("#sources");
 const sourceCount = document.querySelector("#source-count");
 const copyButton = document.querySelector("#copy-button");
 const feedback = document.querySelector("#feedback");
 const feedbackStatus = document.querySelector("#feedback-status");
+const updatedEl = document.querySelector("#stat-updated");
 
 let lastResponse = null;
 
 function setLoading(value) {
-  loading.classList.toggle("hidden", !value);
-  askButton.disabled = value;
+  loading?.classList.toggle("hidden", !value);
+  if (askButton) askButton.disabled = value;
 }
 
 function showError(message) {
+  if (!errorBox) return;
   errorBox.textContent = message;
   errorBox.classList.remove("hidden");
 }
 
 function clearError() {
+  if (!errorBox) return;
   errorBox.classList.add("hidden");
   errorBox.textContent = "";
 }
 
-function badge(label) {
+function badge(label, tone = "neutral") {
   const span = document.createElement("span");
-  span.className = "badge";
+  span.className = `badge badge-${tone}`;
   span.textContent = label;
   return span;
 }
 
+function evidenceLabel(status) {
+  const map = {
+    supported: { label: "مستند", tone: "success" },
+    partial: { label: "نیمه‌مستند", tone: "warning" },
+    no_evidence: { label: "مدرک ناکافی", tone: "warning" },
+    conflict: { label: "اختلاف منابع", tone: "danger" }
+  };
+  return map[status] || { label: "نیاز به بررسی", tone: "neutral" };
+}
+
+function confidenceLabel(confidence) {
+  const level = String(confidence?.level || "").toLowerCase();
+  if (level === "high") return "قدرت شواهد: زیاد";
+  if (level === "medium") return "قدرت شواهد: متوسط";
+  if (level === "low") return "قدرت شواهد: کم";
+  return "قدرت شواهد: ثبت نشده";
+}
+
 function renderSources(sources = []) {
+  if (!sourcesEl || !sourceCount) return;
   sourcesEl.replaceChildren();
-  sourceCount.textContent = `${sources.length} منبع`;
+  sourceCount.textContent = `${sources.length.toLocaleString("fa-IR")} منبع`;
+
+  if (sources.length === 0) {
+    const empty = document.createElement("article");
+    empty.className = "source source-empty";
+    empty.textContent = "برای این پاسخ منبع کافی پیدا نشد.";
+    sourcesEl.append(empty);
+    return;
+  }
 
   for (const source of sources) {
     const card = document.createElement("article");
@@ -49,18 +79,16 @@ function renderSources(sources = []) {
 
     const title = document.createElement("p");
     title.className = "source-title";
-    title.textContent = `[${source.id}] ${source.title || source.source_id}`;
+    title.textContent = source.title || source.source_id || "منبع";
 
     const meta = document.createElement("div");
     meta.className = "source-meta";
 
     const values = [
-      `Grade: ${source.grade ?? "-"}`,
-      source.reference_score != null ? `Reference: ${source.reference_score}` : null,
-      source.version_id ? `Version: ${source.version_id}` : null,
-      source.chapter ? `Chapter: ${source.chapter}` : null,
-      source.section ? `Section: ${source.section}` : null,
-      source.retrieval_score != null ? `Similarity: ${Number(source.retrieval_score).toFixed(3)}` : null
+      source.chapter ? `فصل: ${source.chapter}` : null,
+      source.section ? `بخش: ${source.section}` : null,
+      source.version_id ? `نسخه: ${source.version_id}` : null,
+      source.grade ? `Grade: ${source.grade}` : null
     ].filter(Boolean);
 
     for (const value of values) {
@@ -74,42 +102,40 @@ function renderSources(sources = []) {
   }
 }
 
-function renderResponse(data) {
+function renderResponse(data, askedQuestion) {
   lastResponse = data;
-  answerEl.textContent = data.answer || "";
-  badges.replaceChildren();
-
-  const evidenceMap = {
-    supported: "پشتیبانی‌شده",
-    partial: "شواهد ناکامل",
-    no_evidence: "بدون شواهد کافی",
-    conflict: "تعارض منابع"
-  };
-
-  badges.append(
-    badge(`Evidence: ${evidenceMap[data.evidence_status] || data.evidence_status || "-"}`),
-    badge(`Confidence: ${data.confidence?.level || "-"} ${data.confidence?.score ?? ""}`)
-  );
+  if (answerEl) answerEl.textContent = data.answer || "";
+  if (answeredQuestion) answeredQuestion.textContent = askedQuestion || "";
+  if (badges) {
+    badges.replaceChildren();
+    const evidence = evidenceLabel(data.evidence_status);
+    badges.append(
+      badge(`✓ ${evidence.label}`, evidence.tone),
+      badge(confidenceLabel(data.confidence), "info"),
+      badge(`${(data.sources || []).length.toLocaleString("fa-IR")} منبع`, "neutral")
+    );
+  }
 
   renderSources(data.sources || []);
-  feedbackStatus.textContent = "";
-  answerSection.classList.remove("hidden");
+  if (feedbackStatus) feedbackStatus.textContent = "";
+  answerSection?.classList.remove("hidden");
+  answerSection?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const q = question.value.trim();
-  if (!q) return;
+async function ask(q) {
+  const clean = String(q || "").trim();
+  if (!clean) return;
 
+  if (question) question.value = clean;
   clearError();
-  answerSection.classList.add("hidden");
+  answerSection?.classList.add("hidden");
   setLoading(true);
 
   try {
     const response = await fetch(`${API_BASE}/api/v1/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: q, channel: "web", top_k: 8 })
+      body: JSON.stringify({ question: clean, channel: "web", top_k: 8 })
     });
 
     const data = await response.json();
@@ -117,33 +143,42 @@ form.addEventListener("submit", async (event) => {
       throw new Error(data?.error?.message || "خطا در دریافت پاسخ");
     }
 
-    renderResponse(data);
+    renderResponse(data, clean);
   } catch (error) {
     showError(error instanceof Error ? error.message : "خطای ناشناخته");
   } finally {
     setLoading(false);
   }
+}
+
+form?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  ask(question?.value);
 });
 
-clearButton.addEventListener("click", () => {
-  question.value = "";
-  answerSection.classList.add("hidden");
-  clearError();
-  question.focus();
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-question]");
+  if (!button) return;
+  const q = button.dataset.question || button.textContent || "";
+  if (question) {
+    question.value = q.trim();
+    question.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 });
 
-copyButton.addEventListener("click", async () => {
+copyButton?.addEventListener("click", async () => {
   if (!lastResponse?.answer) return;
   await navigator.clipboard.writeText(lastResponse.answer);
   copyButton.textContent = "کپی شد";
   setTimeout(() => { copyButton.textContent = "کپی پاسخ"; }, 1200);
 });
 
-feedback.addEventListener("click", async (event) => {
+feedback?.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-helpful]");
   if (!button || !lastResponse?.request_id) return;
 
-  feedbackStatus.textContent = "در حال ثبت…";
+  if (feedbackStatus) feedbackStatus.textContent = "در حال ثبت…";
   try {
     const response = await fetch(`${API_BASE}/api/v1/feedback`, {
       method: "POST",
@@ -156,8 +191,22 @@ feedback.addEventListener("click", async (event) => {
     });
 
     if (!response.ok) throw new Error("feedback failed");
-    feedbackStatus.textContent = "ممنون؛ بازخورد ثبت شد.";
+    if (feedbackStatus) feedbackStatus.textContent = "ممنون؛ بازخورد ثبت شد.";
   } catch {
-    feedbackStatus.textContent = "ثبت بازخورد ناموفق بود.";
+    if (feedbackStatus) feedbackStatus.textContent = "ثبت بازخورد ناموفق بود.";
   }
 });
+
+if (updatedEl) {
+  try {
+    const parts = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    updatedEl.textContent = `${values.year}/${values.month}/${values.day}`;
+  } catch {
+    updatedEl.textContent = "امروز";
+  }
+}
