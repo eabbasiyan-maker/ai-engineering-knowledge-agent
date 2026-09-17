@@ -3,64 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#fbfaf7" />
   <title>گزارش ساده Agent — AI Engineering Knowledge Agent</title>
   <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/management.css" />
 </head>
-<body>
-  <main class="shell">
+<body class="management-page">
+  <a class="skip-link" href="#main-content">پرش به محتوای اصلی</a>
+  <main id="main-content" class="shell" tabindex="-1">
+    <nav class="management-topbar" aria-label="میانبرهای مدیریت">
+      <a class="management-brand" href="/">AI.Knowledge</a>
+      <div class="management-links">
+        <a class="management-link" href="/ingest">افزودن کتاب</a>
+        <a class="management-link" href="/">بازگشت به صفحه اصلی</a>
+      </div>
+    </nav>
+
     <header class="hero">
       <div>
         <p class="eyebrow">AGENT HEALTH & USAGE</p>
         <h1>الان Agent چه وضعیتی دارد؟</h1>
         <p class="subtitle">این صفحه تست‌های خودکار را از استفاده واقعی جدا می‌کند، پوشش دانش را نشان می‌دهد و تغییرات کتابخانه را قابل فهم می‌کند.</p>
-        <p><a href="/ingest.html" style="color:#7dd3fc">افزودن کتاب جدید ←</a></p>
       </div>
     </header>
 
     <section class="card ask-card">
       <form id="analytics-form">
         <label for="token">Admin Token</label>
-        <input id="token" type="password" autocomplete="off" required
-          style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc" />
-        <p class="muted" style="margin-top:8px">توکن فقط روی همین مرورگر ذخیره می‌شود و در صفحه‌های ادمین همین سایت دوباره استفاده می‌شود.</p>
-        <div class="actions" style="margin-top:8px">
+        <input id="token" class="form-control" type="password" autocomplete="off" required />
+        <p class="muted stack-gap">توکن فقط روی همین مرورگر ذخیره می‌شود و در صفحه‌های ادمین همین سایت دوباره استفاده می‌شود.</p>
+        <div class="actions">
           <button id="clear-token" class="ghost" type="button">پاک کردن توکن ذخیره‌شده</button>
         </div>
-        <label for="days" style="margin-top:14px">بازه گزارش</label>
-        <select id="days"
-          style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
+
+        <label class="field-gap" for="days">بازه گزارش</label>
+        <select id="days" class="form-control">
           <option value="7">۷ روز</option>
           <option value="30" selected>۳۰ روز</option>
           <option value="90">۹۰ روز</option>
         </select>
+
         <div class="actions">
           <button class="primary" type="submit">گزارش را نشان بده</button>
         </div>
       </form>
     </section>
 
-    <section id="analytics-error" class="card error hidden"></section>
+    <section id="analytics-error" class="card error hidden" role="alert"></section>
 
     <section id="analytics-result" class="hidden">
-      <section class="card sources-card" style="border-color:#244a62">
+      <section class="card sources-card tone-info">
         <p class="section-label">خلاصه خیلی ساده</p>
-        <div id="plain-summary" style="font-size:17px;line-height:2"></div>
+        <div id="plain-summary" class="summary-copy"></div>
       </section>
 
-      <section class="card sources-card" style="border-color:#365314">
+      <section class="card sources-card tone-success">
         <p class="section-label">الان در چه حوزه‌هایی قوی‌تریم؟</p>
         <p class="muted">این نقشه از محتوای نسخه فعال کتاب‌ها ساخته می‌شود. «پوشش قوی» یعنی شواهد بیشتر و متنوع‌تر داریم؛ نه اینکه هر جواب در آن حوزه حتماً درست است.</p>
-        <div id="knowledge-coverage" class="sources" style="margin-top:14px"></div>
+        <div id="knowledge-coverage" class="sources stack-gap"></div>
       </section>
 
-      <section class="card sources-card" style="border-color:#4c1d95">
+      <section class="card sources-card tone-accent">
         <p class="section-label">از آخرین به‌روزرسانی چه دانشی اضافه شد؟</p>
-        <div id="knowledge-baseline" style="margin-bottom:14px"></div>
+        <div id="knowledge-baseline" class="stack-gap"></div>
         <div id="knowledge-changes" class="sources"></div>
       </section>
 
-      <section id="summary-cards" class="sources" style="margin-top:18px"></section>
+      <section id="summary-cards" class="sources metric-grid"></section>
 
       <section class="card sources-card">
         <p class="section-label">معنی وضعیت جواب‌ها</p>
@@ -70,7 +79,7 @@
           <article class="source"><p class="source-title">نیمه‌مستند</p><p class="muted">بخشی از سؤال مدرک دارد و بخشی هنوز پوشش کافی ندارد.</p></article>
           <article class="source"><p class="source-title">اختلاف منابع</p><p class="muted">دو یا چند منبع معتبر دیدگاه متفاوت دارند؛ Agent باید اختلاف را صریح نشان دهد.</p></article>
         </div>
-        <p class="muted" style="margin-top:12px">«قدرت شواهد» احتمال درست‌بودن جواب نیست؛ فقط نشان می‌دهد شواهد بازیابی‌شده چقدر قوی و معتبر بوده‌اند.</p>
+        <p class="muted stack-gap">«قدرت شواهد» احتمال درست‌بودن جواب نیست؛ فقط نشان می‌دهد شواهد بازیابی‌شده چقدر قوی و معتبر بوده‌اند.</p>
       </section>
 
       <section class="card sources-card">
@@ -101,7 +110,7 @@
         <div id="low-confidence" class="sources"></div>
       </section>
 
-      <section class="card sources-card" style="opacity:.88">
+      <section class="card sources-card dimmed-card">
         <p class="section-label">تست‌های خودکار سیستم — جدا از کاربران</p>
         <div id="automated-tests" class="sources"></div>
         <p class="muted">این درخواست‌ها برای کنترل کیفیت خود Agent اجرا می‌شوند و در آمار استفاده واقعی بالا شمرده نمی‌شوند.</p>
