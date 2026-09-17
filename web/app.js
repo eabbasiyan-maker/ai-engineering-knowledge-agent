@@ -3,10 +3,15 @@ const API_BASE = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev
 const form = document.querySelector("#ask-form");
 const question = document.querySelector("#question");
 const askButton = document.querySelector("#ask-button");
+const askButtonLabel = document.querySelector("#ask-button-label");
 const loading = document.querySelector("#loading");
 const errorBox = document.querySelector("#error-box");
+const errorTitle = document.querySelector("#error-title");
+const errorMessage = document.querySelector("#error-message");
+const retryButton = document.querySelector("#retry-button");
 const answerSection = document.querySelector("#answer-section");
 const answerEl = document.querySelector("#answer");
+const answerTitle = document.querySelector(".answer-title");
 const answeredQuestion = document.querySelector("#answered-question");
 const badges = document.querySelector("#badges");
 const evidenceSummaryEl = document.querySelector("#evidence-summary");
@@ -23,22 +28,62 @@ const frequentQuestionsEl = document.querySelector("#frequent-questions");
 const recentQuestionsEl = document.querySelector("#recent-questions");
 
 let lastResponse = null;
+let lastQuestion = "";
 
 function setLoading(value) {
   loading?.classList.toggle("hidden", !value);
   if (askButton) askButton.disabled = value;
+  if (askButtonLabel) askButtonLabel.textContent = value ? "در حال جست‌وجو…" : "پرسیدن";
+  form?.setAttribute("aria-busy", value ? "true" : "false");
 }
 
-function showError(message) {
+function showError({ title, message, canRetry = true }) {
   if (!errorBox) return;
-  errorBox.textContent = message;
+  if (errorTitle) errorTitle.textContent = title || "دریافت پاسخ انجام نشد";
+  if (errorMessage) errorMessage.textContent = message || "لطفاً دوباره تلاش کن.";
+  retryButton?.classList.toggle("hidden", !canRetry);
   errorBox.classList.remove("hidden");
+  requestAnimationFrame(() => errorBox.focus({ preventScroll: false }));
 }
 
 function clearError() {
   if (!errorBox) return;
   errorBox.classList.add("hidden");
-  errorBox.textContent = "";
+  if (errorTitle) errorTitle.textContent = "دریافت پاسخ انجام نشد";
+  if (errorMessage) errorMessage.textContent = "لطفاً دوباره تلاش کن.";
+  retryButton?.classList.remove("hidden");
+}
+
+function errorForStatus(status) {
+  if (status === 400) {
+    return {
+      title: "این سؤال قابل پردازش نبود",
+      message: "متن سؤال را کمی ساده‌تر یا دقیق‌تر بنویس و دوباره امتحان کن.",
+      canRetry: false
+    };
+  }
+
+  if (status === 429) {
+    return {
+      title: "درخواست‌ها موقتاً زیاد شده‌اند",
+      message: "کمی بعد دوباره همین سؤال را امتحان کن؛ سؤال تو حفظ شده است.",
+      canRetry: true
+    };
+  }
+
+  if (status >= 500) {
+    return {
+      title: "سرویس موقتاً پاسخ نمی‌دهد",
+      message: "مشکل از پردازش سرویس است، نه از سؤال تو. می‌توانی دوباره تلاش کنی.",
+      canRetry: true
+    };
+  }
+
+  return {
+    title: "دریافت پاسخ انجام نشد",
+    message: "پاسخ کامل دریافت نشد. دوباره تلاش کن یا سؤال را کمی تغییر بده.",
+    canRetry: true
+  };
 }
 
 function badge(label, tone = "neutral") {
@@ -66,6 +111,16 @@ function evidenceSummary(status) {
     conflict: "منابع فعال در این موضوع با هم اختلاف دارند؛ پاسخ باید با توجه به این اختلاف خوانده شود."
   };
   return map[status] || "وضعیت شواهد این پاسخ نیاز به بررسی دارد.";
+}
+
+function answerTitleForStatus(status) {
+  const map = {
+    supported: "پاسخ مستند از کتابخانه",
+    partial: "پاسخ با شواهد محدود",
+    no_evidence: "شواهد کافی برای پاسخ قطعی پیدا نشد",
+    conflict: "پاسخ با اختلاف میان منابع"
+  };
+  return map[status] || "پاسخ کتابخانه";
 }
 
 function confidenceLabel(confidence) {
@@ -166,7 +221,7 @@ function renderAnswerText(text) {
   flushList();
 }
 
-function renderSources(sources = []) {
+function renderSources(sources = [], evidenceStatus = "unknown") {
   if (!sourcesEl || !sourceCount) return;
   sourcesEl.replaceChildren();
   sourceCount.textContent = `${sources.length.toLocaleString("fa-IR")} منبع`;
@@ -174,7 +229,20 @@ function renderSources(sources = []) {
   if (sources.length === 0) {
     const empty = document.createElement("article");
     empty.className = "source source-empty";
-    empty.textContent = "برای این پاسخ منبع کافی پیدا نشد.";
+    empty.dataset.state = evidenceStatus;
+    empty.innerHTML = "";
+
+    const title = document.createElement("strong");
+    title.textContent = evidenceStatus === "no_evidence"
+      ? "منبع کافی پیدا نشد"
+      : "منبعی برای نمایش وجود ندارد";
+
+    const text = document.createElement("span");
+    text.textContent = evidenceStatus === "no_evidence"
+      ? "این یعنی کتابخانه فعال برای این سؤال شواهد کافی ندارد؛ بهتر است پاسخ را قطعی در نظر نگیری."
+      : "برای این پاسخ منبع قابل نمایش برنگشته است.";
+
+    empty.append(title, text);
     sourcesEl.append(empty);
     return;
   }
@@ -223,12 +291,14 @@ function resetFeedback() {
 
 function renderResponse(data, askedQuestion) {
   lastResponse = data;
+  const status = data.evidence_status || "unknown";
   renderAnswerText(data.answer || "");
   if (answeredQuestion) answeredQuestion.textContent = askedQuestion || "";
+  if (answerTitle) answerTitle.textContent = answerTitleForStatus(status);
 
   if (badges) {
     badges.replaceChildren();
-    const evidence = evidenceLabel(data.evidence_status);
+    const evidence = evidenceLabel(status);
     badges.append(
       badge(`${evidence.icon} ${evidence.label}`, evidence.tone),
       badge(confidenceLabel(data.confidence), "info")
@@ -236,23 +306,27 @@ function renderResponse(data, askedQuestion) {
   }
 
   if (evidenceSummaryEl) {
-    evidenceSummaryEl.textContent = evidenceSummary(data.evidence_status);
-    evidenceSummaryEl.dataset.status = data.evidence_status || "unknown";
+    evidenceSummaryEl.textContent = evidenceSummary(status);
+    evidenceSummaryEl.dataset.status = status;
   }
 
-  renderSources(data.sources || []);
+  renderSources(data.sources || [], status);
   resetFeedback();
   if (copyStatus) copyStatus.textContent = "";
   if (copyButton) copyButton.textContent = "کپی پاسخ";
 
-  answerSection?.classList.remove("hidden");
-  answerSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (answerSection) {
+    answerSection.dataset.state = status;
+    answerSection.classList.remove("hidden");
+    answerSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 async function ask(q) {
   const clean = String(q || "").trim();
   if (!clean) return;
 
+  lastQuestion = clean;
   if (question) question.value = clean;
   clearError();
   answerSection?.classList.add("hidden");
@@ -265,14 +339,34 @@ async function ask(q) {
       body: JSON.stringify({ question: clean, channel: "web", top_k: 8 })
     });
 
-    const data = await response.json();
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+
     if (!response.ok) {
-      throw new Error(data?.error?.message || "خطا در دریافت پاسخ");
+      showError(errorForStatus(response.status));
+      return;
+    }
+
+    if (!String(data?.answer || "").trim()) {
+      showError({
+        title: "پاسخ متنی دریافت نشد",
+        message: "درخواست پردازش شد اما متن پاسخ کامل برنگشت. دوباره تلاش کن.",
+        canRetry: true
+      });
+      return;
     }
 
     renderResponse(data, clean);
-  } catch (error) {
-    showError(error instanceof Error ? error.message : "خطای ناشناخته");
+  } catch {
+    showError({
+      title: "اتصال به سرویس برقرار نشد",
+      message: "اینترنت یا ارتباط با سرویس را بررسی کن. سؤال تو حفظ شده و می‌توانی دوباره تلاش کنی.",
+      canRetry: true
+    });
   } finally {
     setLoading(false);
   }
@@ -326,6 +420,10 @@ async function loadHomeData() {
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
   ask(question?.value);
+});
+
+retryButton?.addEventListener("click", () => {
+  ask(lastQuestion || question?.value);
 });
 
 document.addEventListener("click", (event) => {
