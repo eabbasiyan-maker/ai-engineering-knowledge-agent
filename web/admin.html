@@ -23,6 +23,10 @@
         <label for="token">Admin Token</label>
         <input id="token" type="password" autocomplete="off" required
           style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc" />
+        <p class="muted" style="margin-top:8px">توکن فقط روی همین مرورگر ذخیره می‌شود و در صفحه‌های ادمین همین سایت دوباره استفاده می‌شود.</p>
+        <div class="actions" style="margin-top:8px">
+          <button id="clear-token" class="ghost" type="button">پاک کردن توکن ذخیره‌شده</button>
+        </div>
         <label for="days" style="margin-top:14px">بازه گزارش</label>
         <select id="days"
           style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
@@ -104,6 +108,36 @@
       </section>
     </section>
   </main>
+  <script>
+    (() => {
+      const storageKey = "ai-engineering-admin-token";
+      const token = document.getElementById("token");
+      const clear = document.getElementById("clear-token");
+      if (!token) return;
+
+      try {
+        token.value = localStorage.getItem(storageKey) || "";
+      } catch {}
+
+      const persist = () => {
+        try {
+          const value = token.value.trim();
+          if (value) localStorage.setItem(storageKey, value);
+          else localStorage.removeItem(storageKey);
+        } catch {}
+      };
+
+      token.addEventListener("input", persist);
+      token.addEventListener("change", persist);
+      window.addEventListener("pagehide", persist);
+
+      clear?.addEventListener("click", () => {
+        token.value = "";
+        try { localStorage.removeItem(storageKey); } catch {}
+        token.focus();
+      });
+    })();
+  </script>
   <script src="/admin.js" defer></script>
 </body>
 </html>
