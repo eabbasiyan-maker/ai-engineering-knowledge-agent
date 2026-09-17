@@ -124,7 +124,7 @@ export default {
         return json({
           ok: true,
           service: "ai-engineering-knowledge-agent",
-          phase: 8
+          phase: 9
         });
       }
 
@@ -144,11 +144,15 @@ export default {
 
         const startedAt = Date.now();
         const result = await answerQuestion(env, { ...body, question });
+        const automatedTest = request.headers.get("x-agent-traffic") === "automated_test";
+        const analyticsChannel = automatedTest
+          ? `test_${result.channel}`
+          : result.channel;
 
         ctx.waitUntil(
           recordAgentRequest(env, {
             request_id: result.request_id,
-            channel: result.channel,
+            channel: analyticsChannel,
             question,
             evidence_status: result.evidence_status,
             confidence_score: result.confidence?.score ?? null,
