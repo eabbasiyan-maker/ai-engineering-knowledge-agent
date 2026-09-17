@@ -8,6 +8,7 @@
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/home.css" />
+  <link rel="stylesheet" href="/answer.css" />
   <link rel="stylesheet" href="/discovery.css" />
   <link rel="stylesheet" href="/library.css" />
 </head>
@@ -66,25 +67,43 @@
     </section>
     <section id="error-box" class="home-card error hidden" role="alert"></section>
 
-    <section id="answer-section" class="answer-layout hidden">
+    <section id="answer-section" class="answer-layout hidden" aria-live="polite" tabindex="-1">
       <article class="home-card answer-card">
-        <div class="answer-question-wrap"><span class="mini-label">سؤال شما</span><p id="answered-question" class="answered-question"></p></div>
-        <div class="answer-head">
-          <div><span class="mini-label">پاسخ بر اساس دانش تأییدشده</span><div id="badges" class="badges"></div></div>
-          <button id="copy-button" class="icon-button" type="button">کپی پاسخ</button>
+        <div class="answer-question-wrap">
+          <span class="mini-label">سؤال شما</span>
+          <p id="answered-question" class="answered-question"></p>
         </div>
+
+        <div class="answer-toolbar">
+          <div class="answer-heading-block">
+            <span class="mini-label">پاسخ</span>
+            <h2 class="answer-title">پاسخ مستند از کتابخانه</h2>
+            <p class="answer-helper">اول پاسخ را بخوان؛ وضعیت شواهد و منابع استفاده‌شده هم کنار آن مشخص است.</p>
+          </div>
+          <div class="answer-copy-wrap">
+            <button id="copy-button" class="icon-button" type="button">کپی پاسخ</button>
+            <span id="copy-status" class="copy-status" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <div id="badges" class="badges" aria-label="وضعیت پاسخ"></div>
+        <p id="evidence-summary" class="evidence-summary"></p>
         <div id="answer" class="answer-text" dir="auto"></div>
-        <div id="feedback" class="feedback">
+
+        <div id="feedback" class="feedback" aria-label="بازخورد درباره پاسخ">
           <span>این پاسخ مفید بود؟</span>
-          <button data-helpful="true" type="button">👍 بله</button>
-          <button data-helpful="false" type="button">👎 نه</button>
-          <span id="feedback-status" class="muted"></span>
+          <button data-helpful="true" aria-pressed="false" type="button">بله، مفید بود</button>
+          <button data-helpful="false" aria-pressed="false" type="button">نه، نیاز به بهبود دارد</button>
+          <span id="feedback-status" class="muted feedback-status" role="status" aria-live="polite"></span>
         </div>
       </article>
 
-      <section class="home-card sources-card">
+      <section class="home-card sources-card" aria-labelledby="sources-title">
         <div class="sources-head">
-          <div><span class="mini-label">منابع استفاده‌شده</span><p class="muted">فقط منابع فعال و تأییدشده در پاسخ استفاده می‌شوند.</p></div>
+          <div>
+            <span class="mini-label">منابع پاسخ</span>
+            <p id="sources-title" class="muted">منابعی که برای همین پاسخ از کتابخانه فعال استفاده شده‌اند.</p>
+          </div>
           <span id="source-count" class="count"></span>
         </div>
         <div id="sources" class="sources"></div>
