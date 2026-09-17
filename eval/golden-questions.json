@@ -65,7 +65,7 @@
   },
   {
     "id": "conflict-workflow-autonomy",
-    "question": "Are predefined workflows compatible with agentic AI, or are workflows fundamentally antithetical to autonomy? If the approved sources disagree, state the disagreement explicitly and cite both perspectives.",
+    "question": "Compare these two approved-source positions explicitly: Production-Grade Agentic AI says 'Why Workflows Are Antithetical to Autonomy', while Design Multi-Agent AI Systems Using MCP and A2A describes dynamic workflow execution, hybrid orchestration, and proactive autonomous monitoring. Are these positions materially in conflict? Explain the disagreement and cite both sources.",
     "expected_status": ["conflict"],
     "expected_source_ids": ["BOOK-010", "BOOK-011"],
     "required_answer_terms": ["workflow", "autonomy"],
