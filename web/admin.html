@@ -4,16 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#0f172a" />
-  <title>Analytics Admin — AI Engineering Knowledge Agent</title>
+  <title>گزارش ساده Agent — AI Engineering Knowledge Agent</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <main class="shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">ADMIN ANALYTICS</p>
-        <h1>وضعیت استفاده و شکاف‌های دانش</h1>
-        <p class="subtitle">توکن فقط در حافظه همین صفحه استفاده می‌شود و در مرورگر ذخیره نمی‌شود.</p><p><a href="/ingest.html" style="color:#7dd3fc">افزودن کتاب جدید از گوشی ←</a></p>
+        <p class="eyebrow">AGENT HEALTH & USAGE</p>
+        <h1>الان Agent چه وضعیتی دارد؟</h1>
+        <p class="subtitle">این صفحه تست‌های خودکار را از استفاده واقعی جدا می‌کند و وضعیت جواب‌ها را با زبان ساده نشان می‌دهد.</p>
+        <p><a href="/ingest.html" style="color:#7dd3fc">افزودن کتاب جدید ←</a></p>
       </div>
     </header>
 
@@ -22,7 +23,7 @@
         <label for="token">Admin Token</label>
         <input id="token" type="password" autocomplete="off" required
           style="width:100%;padding:14px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc" />
-        <label for="days" style="margin-top:14px">بازه</label>
+        <label for="days" style="margin-top:14px">بازه گزارش</label>
         <select id="days"
           style="width:100%;padding:12px;border-radius:12px;border:1px solid #26364c;background:#081220;color:#f8fafc">
           <option value="7">۷ روز</option>
@@ -30,33 +31,64 @@
           <option value="90">۹۰ روز</option>
         </select>
         <div class="actions">
-          <button class="primary" type="submit">نمایش گزارش</button>
+          <button class="primary" type="submit">گزارش را نشان بده</button>
         </div>
       </form>
     </section>
 
     <section id="analytics-error" class="card error hidden"></section>
+
     <section id="analytics-result" class="hidden">
+      <section class="card sources-card" style="border-color:#244a62">
+        <p class="section-label">خلاصه خیلی ساده</p>
+        <div id="plain-summary" style="font-size:17px;line-height:2"></div>
+      </section>
+
       <section id="summary-cards" class="sources" style="margin-top:18px"></section>
 
       <section class="card sources-card">
-        <p class="section-label">کانال‌ها</p>
+        <p class="section-label">معنی وضعیت جواب‌ها</p>
+        <div class="sources">
+          <article class="source"><p class="source-title">مستند</p><p class="muted">Agent برای جواب، مدرک مرتبط در کتاب‌های تأییدشده پیدا کرده است.</p></article>
+          <article class="source"><p class="source-title">مدرک ناکافی</p><p class="muted">این شکست نیست؛ Agent عمداً جواب قطعی نساخته چون منبع کافی نداشته است.</p></article>
+          <article class="source"><p class="source-title">نیمه‌مستند</p><p class="muted">بخشی از سؤال مدرک دارد و بخشی هنوز پوشش کافی ندارد.</p></article>
+          <article class="source"><p class="source-title">اختلاف منابع</p><p class="muted">دو یا چند منبع معتبر دیدگاه متفاوت دارند؛ Agent باید اختلاف را صریح نشان دهد.</p></article>
+        </div>
+        <p class="muted" style="margin-top:12px">«قدرت شواهد» احتمال درست‌بودن جواب نیست؛ فقط نشان می‌دهد شواهد بازیابی‌شده چقدر قوی و معتبر بوده‌اند.</p>
+      </section>
+
+      <section class="card sources-card">
+        <p class="section-label">وضعیت جواب‌های واقعی</p>
+        <div id="evidence-statuses" class="sources"></div>
+      </section>
+
+      <section class="card sources-card">
+        <p class="section-label">استفاده واقعی از کدام کانال آمده؟</p>
         <div id="channels" class="sources"></div>
       </section>
 
       <section class="card sources-card">
-        <p class="section-label">سؤال‌های پرتکرار</p>
+        <p class="section-label">سؤال‌های واقعی پرتکرار</p>
+        <p class="muted">سؤال‌های Evaluation و Smoke Test در این قسمت حساب نمی‌شوند.</p>
         <div id="top-questions" class="sources"></div>
       </section>
 
       <section class="card sources-card">
-        <p class="section-label">شکاف‌های دانش / بدون شواهد</p>
+        <p class="section-label">دانش کم داریم</p>
+        <p class="muted">این‌ها سؤال‌های واقعی‌ای هستند که Agent برایشان مدرک کافی پیدا نکرده؛ بهترین ورودی برای توسعه Knowledge Base.</p>
         <div id="missing-topics" class="sources"></div>
       </section>
 
       <section class="card sources-card">
-        <p class="section-label">پاسخ‌های کم‌اطمینان</p>
+        <p class="section-label">نیاز به بررسی</p>
+        <p class="muted">پاسخ‌های واقعی با شواهد ضعیف‌تر، پوشش ناقص یا اختلاف منابع. این بخش به معنی «همه جواب‌ها نامطمئن‌اند» نیست.</p>
         <div id="low-confidence" class="sources"></div>
+      </section>
+
+      <section class="card sources-card" style="opacity:.88">
+        <p class="section-label">تست‌های خودکار سیستم — جدا از کاربران</p>
+        <div id="automated-tests" class="sources"></div>
+        <p class="muted">این درخواست‌ها برای کنترل کیفیت خود Agent اجرا می‌شوند و در آمار استفاده واقعی بالا شمرده نمی‌شوند.</p>
       </section>
     </section>
   </main>
