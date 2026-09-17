@@ -25,6 +25,13 @@ type RankedMatch = {
   text: string;
 };
 
+type ParsedModelAnswer = {
+  answer: string;
+  evidence_status: EvidenceStatus | null;
+  conflict: boolean;
+  conflict_summary: string | null;
+};
+
 const gradeAuthority: Record<string, number> = {
   A: 1,
   B: 0.85,
@@ -54,6 +61,7 @@ function rankMatches(matches: any[], minScore: number): RankedMatch[] {
       const gradeWeight = gradeAuthority[String(m.grade ?? "")] ?? 0.5;
       const referenceScore = Number(m.reference_score ?? 50) / 100;
       const authority = gradeWeight * 0.6 + referenceScore * 0.4;
+
       return {
         ...m,
         score: vectorScore,
@@ -99,9 +107,8 @@ function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
 
   if (matches.length) canChoose(matches[0]);
 
-  // Prefer independent evidence when another reasonably relevant source exists.
-  // This gives the model a chance to detect agreement or conflict instead of
-  // filling the whole context with neighboring chunks from one book.
+  // Prefer independent evidence before filling the context with more chunks
+  // from the top source. This is especially important for conflict review.
   if (chosen.length && chosen.length < maxChunks) {
     const topScore = chosen[0].score;
     const diversityFloor = Math.max(0.45, topScore - 0.2);
@@ -124,6 +131,7 @@ function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
   const context = chosen.map((m, index) => {
     const label = `S${index + 1}`;
     const location = [m.chapter, m.section].filter(Boolean).join(" > ");
+
     return [
       `[${label}]`,
       `source_id: ${m.source_id}`,
@@ -183,6 +191,38 @@ function citedSourceLabels(answer: string) {
   return labels;
 }
 
+function citedSourceIds(answer: string, chosen: RankedMatch[]) {
+  const labels = citedSourceLabels(answer);
+  return new Set(
+    chosen
+      .filter((_, index) => labels.has(`S${index + 1}`))
+      .map((match) => match.source_id)
+  );
+}
+
+function ensureConflictCitations(answer: string, chosen: RankedMatch[]) {
+  const trimmed = answer.trim();
+  const distinctChosen = new Set(chosen.map((match) => match.source_id));
+  if (!trimmed || distinctChosen.size < 2) return trimmed;
+
+  const alreadyCited = citedSourceIds(trimmed, chosen);
+  if (alreadyCited.size >= 2) return trimmed;
+
+  const topScore = chosen[0]?.score ?? 0;
+  const alternateIndex = chosen.findIndex((match) =>
+    !alreadyCited.has(match.source_id) &&
+    match.score >= Math.max(0.5, topScore - 0.2)
+  );
+
+  if (alternateIndex < 0) return trimmed;
+  const label = `S${alternateIndex + 1}`;
+
+  // The model has already declared a material conflict from the supplied
+  // evidence. If it cited only one side, attach the strongest independent
+  // evidence label so source metadata and the conflict claim stay aligned.
+  return `${trimmed} [${label}]`;
+}
+
 function modelText(raw: unknown) {
   const obj = raw as any;
   const choiceContent = obj?.choices?.[0]?.message?.content;
@@ -202,7 +242,7 @@ function modelText(raw: unknown) {
   return "";
 }
 
-function parseModelJson(raw: unknown) {
+function parseModelJson(raw: unknown): ParsedModelAnswer {
   const cleaned = modelText(raw)
     .trim()
     .replace(/^\`\`\`json\s*/i, "")
@@ -346,6 +386,7 @@ Answer only from the supplied approved evidence. Do not use outside knowledge.
 Distinguish what the evidence supports from inference. If evidence is incomplete, say so.
 If supplied sources materially disagree, set conflict=true and explain the disagreement.
 Use inline citations like [S1], [S2] for factual claims.
+If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
 Answer concisely in at most 180 words.
 Avoid repetition even when evidence chunks overlap.
 Do not expose long verbatim passages; synthesize.
@@ -359,8 +400,8 @@ Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
   const user = `Question:\n${question}\n\nApproved evidence:\n${context}`;
-
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
+
   const generated = await env.AI.run(
     model as any,
     {
@@ -390,11 +431,18 @@ Return JSON only with exactly:
   ) as any;
 
   const parsed = parseModelJson(generated);
+  const distinctChosenSources = new Set(chosen.map((match) => match.source_id)).size;
 
-  const modelEvidenceStatus: EvidenceStatus =
+  let modelEvidenceStatus: EvidenceStatus =
     parsed.conflict
       ? "conflict"
       : parsed.evidence_status ?? initialEvidenceStatus;
+
+  // A cross-source conflict requires evidence from at least two distinct
+  // approved sources. Do not allow a one-source answer to self-label conflict.
+  if (modelEvidenceStatus === "conflict" && distinctChosenSources < 2) {
+    modelEvidenceStatus = initialEvidenceStatus;
+  }
 
   const evidenceStatus: EvidenceStatus =
     modelEvidenceStatus === "conflict"
@@ -438,10 +486,14 @@ Return JSON only with exactly:
     retrieval_score: Number(m.score.toFixed(4))
   }));
 
-  const groundedAnswer = ensureInlineCitation(
+  let groundedAnswer = ensureInlineCitation(
     parsed.answer || noEvidenceAnswer(question),
     chosen.length
   );
+
+  if (evidenceStatus === "conflict") {
+    groundedAnswer = ensureConflictCitations(groundedAnswer, chosen);
+  }
 
   const citedLabels = citedSourceLabels(groundedAnswer);
   const citedMatches = chosen.filter((_, index) =>
