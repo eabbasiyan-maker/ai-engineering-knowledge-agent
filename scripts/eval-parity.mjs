@@ -24,7 +24,10 @@ for (const test of cases) {
   for (const channel of channels) {
     const res = await fetch(API_BASE + "/api/v1/ask", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-agent-traffic": "automated_test"
+      },
       body: JSON.stringify({
         question: test.question,
         channel,
