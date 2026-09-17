@@ -17,6 +17,7 @@ const UI_PATHS = new Set([
   "/",
   "/index.html",
   "/app.js",
+  "/home.css",
   "/ingest",
   "/ingest.html",
   "/admin",
