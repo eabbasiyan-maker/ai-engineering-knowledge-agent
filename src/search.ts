@@ -1,5 +1,78 @@
 import type { Env } from "./env";
 
+function requestsConflictReviewQuery(query: string) {
+  return /\b(conflict|conflicting|disagree|disagreement|different perspectives|different views|opposing|both perspectives)\b/i.test(query) ||
+    /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(query);
+}
+
+function extractExactFactAnchor(query: string) {
+  if (!/\b(exact|percentage|percent|benchmark|score|date|count|version)\b/i.test(query)) {
+    return null;
+  }
+
+  const phrases = query.match(/\b(?:[A-Z][A-Za-z0-9-]*\s+){1,}[A-Z][A-Za-z0-9-]*\b/g) ?? [];
+  if (!phrases.length) return null;
+
+  return phrases
+    .sort((a, b) => b.length - a.length)[0]
+    .trim()
+    .toLowerCase();
+}
+
+async function exactAnchorRescue(env: Env, anchor: string) {
+  const pattern = `%${anchor}%`;
+  const row = await env.DB.prepare(
+    `SELECT
+        k.chunk_id, k.source_id, k.version_id, k.chapter, k.section,
+        k.content_text,
+        s.title, s.grade, s.reference_score
+     FROM knowledge_chunks k
+     JOIN sources s ON s.source_id = k.source_id
+     JOIN source_versions v ON v.version_id = k.version_id
+     WHERE k.status = 'active'
+       AND v.status = 'active'
+       AND s.status IN ('active', 'active_secondary')
+       AND (
+         lower(COALESCE(k.content_text, '')) LIKE ? OR
+         lower(COALESCE(k.section, '')) LIKE ? OR
+         lower(COALESCE(s.title, '')) LIKE ?
+       )
+     LIMIT 1`
+  ).bind(pattern, pattern, pattern).first<Record<string, unknown>>();
+
+  if (!row || !row.content_text) return null;
+
+  return {
+    score: 0.62,
+    chunk_id: row.chunk_id,
+    source_id: row.source_id,
+    version_id: row.version_id,
+    title: row.title,
+    grade: row.grade,
+    reference_score: row.reference_score,
+    chapter: row.chapter,
+    section: row.section,
+    text: String(row.content_text)
+  };
+}
+
+function mergeMatches(groups: any[][]) {
+  const merged = new Map<string, any>();
+  for (const group of groups) {
+    for (const match of group) {
+      const key = String(match.chunk_id ?? "");
+      if (!key) continue;
+      const existing = merged.get(key);
+      if (!existing || Number(match.score ?? 0) > Number(existing.score ?? 0)) {
+        merged.set(key, match);
+      }
+    }
+  }
+  return Array.from(merged.values()).sort(
+    (a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)
+  );
+}
+
 export async function searchKnowledge(env: Env, query: string, topK = 8) {
   const embedded = await env.AI.run(
     (env.EMBEDDING_MODEL || "@cf/baai/bge-m3") as any,
@@ -16,7 +89,7 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
     returnMetadata: "none"
   });
 
-  const accepted = [];
+  const accepted: any[] = [];
   const eligibleTarget = Math.min(Math.max(topK * 3, 24), 36);
 
   for (const match of result.matches ?? []) {
@@ -68,7 +141,28 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
     if (accepted.length >= eligibleTarget) break;
   }
 
-  return accepted;
+  // Deterministic guard for exact named facts. If a question asks for an exact
+  // benchmark/score/etc. and the distinctive named anchor is absent from the
+  // retrieved evidence and the active corpus, return no evidence rather than
+  // letting topical similarity produce a false partial answer.
+  const exactAnchor = extractExactFactAnchor(query);
+  if (exactAnchor) {
+    const semanticHasAnchor = accepted.some((match) => {
+      const haystack = `${String(match.title ?? "")} ${String(match.section ?? "")} ${String(match.text ?? "")}`.toLowerCase();
+      return haystack.includes(exactAnchor);
+    });
+
+    if (!semanticHasAnchor) {
+      const rescued = await exactAnchorRescue(env, exactAnchor);
+      if (!rescued) return [];
+      accepted.unshift(rescued);
+    }
+  }
+
+  if (!requestsConflictReviewQuery(query)) return accepted;
+
+  const lexical = await searchKnowledgeLexical(env, query, topK);
+  return mergeMatches([accepted, lexical]);
 }
 
 const lexicalStopwords = new Set([
@@ -135,7 +229,7 @@ export async function searchKnowledgeLexical(env: Env, query: string, topK = 12)
       const hits = terms.filter((term) => haystack.includes(term));
       const headingHits = terms.filter((term) => heading.includes(term)).length;
       const coverage = hits.length / terms.length;
-      const score = Math.min(0.78, 0.42 + coverage * 0.28 + headingHits * 0.025);
+      const score = Math.min(0.78, 0.46 + coverage * 0.28 + headingHits * 0.025);
 
       return {
         score,
