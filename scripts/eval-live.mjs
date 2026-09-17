@@ -114,6 +114,9 @@ for (const test of cases) {
     http_status: httpStatus,
     evidence_status: body?.evidence_status ?? null,
     confidence: body?.confidence?.score ?? null,
+    answer: body?.answer ?? null,
+    conflict_summary: body?.conflict_summary ?? null,
+    retrieval: body?.retrieval ?? null,
     sources: Array.isArray(body?.sources)
       ? body.sources.map((s) => ({
           id: s.id,
