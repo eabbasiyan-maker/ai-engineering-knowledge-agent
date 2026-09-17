@@ -75,6 +75,76 @@ jobs:
           throw new Error("website verification failed: " + last);
           NODE
 
+      - name: Verify Worker public experience
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          const base = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev";
+
+          const homeRes = await fetch(base + "/", { cache: "no-store" });
+          const homeHtml = await homeRes.text();
+          const homeMarkers = [
+            "AI.Knowledge",
+            "می‌تونی درباره این موضوع‌ها سؤال بپرسی",
+            "سؤال‌های پرتکرار",
+            "آخرین سؤال‌ها"
+          ];
+          if (!homeRes.ok || homeMarkers.some(marker => !homeHtml.includes(marker))) {
+            throw new Error("Worker homepage UI is stale or unavailable");
+          }
+
+          const cssRes = await fetch(base + "/styles.css", { cache: "no-store" });
+          const css = await cssRes.text();
+          if (!cssRes.ok || !css.includes("color-scheme: light") || !css.includes("@media (max-width: 720px)")) {
+            throw new Error("Light/mobile stylesheet verification failed");
+          }
+
+          const publicRes = await fetch(base + "/api/v1/home", { cache: "no-store" });
+          const publicHome = await publicRes.json();
+          if (!publicRes.ok) throw new Error("/api/v1/home failed");
+          if (!(Number(publicHome?.library?.active_books) > 0)) throw new Error("active_books missing");
+          if (!(Number(publicHome?.library?.active_chunks) > 0)) throw new Error("active_chunks missing");
+          if (!Array.isArray(publicHome?.frequent_questions) || publicHome.frequent_questions.length === 0) {
+            throw new Error("frequent questions missing");
+          }
+          if (!Array.isArray(publicHome?.recent_questions) || publicHome.recent_questions.length === 0) {
+            throw new Error("recent questions missing");
+          }
+
+          const askRes = await fetch(base + "/api/v1/ask", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-agent-traffic": "automated_test"
+            },
+            body: JSON.stringify({
+              question: "RAG چیست و چه زمانی از آن استفاده می‌کنیم؟",
+              channel: "web",
+              top_k: 8
+            })
+          });
+          const answer = await askRes.json();
+          if (!askRes.ok || !answer?.answer || !answer?.request_id) {
+            throw new Error("website ask flow failed");
+          }
+          if (!Array.isArray(answer?.sources) || answer.sources.length === 0) {
+            throw new Error("website answer returned no sources");
+          }
+          if (!answer?.evidence_status) throw new Error("evidence status missing");
+
+          console.log(JSON.stringify({
+            homepage: "ok",
+            mobile_css: "ok",
+            active_books: publicHome.library.active_books,
+            active_chunks: publicHome.library.active_chunks,
+            frequent_questions: publicHome.frequent_questions.length,
+            recent_questions: publicHome.recent_questions.length,
+            ask: "ok",
+            evidence_status: answer.evidence_status,
+            sources: answer.sources.length
+          }, null, 2));
+          NODE
+
       - name: Verify mobile admin and ingestion tools
         shell: bash
         run: |
