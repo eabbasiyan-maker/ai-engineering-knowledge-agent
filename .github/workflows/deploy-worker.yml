@@ -76,6 +76,7 @@ jobs:
         run: |
           npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0003_answer_feedback.sql
           npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0004_agent_request_analytics.sql
+          npx wrangler d1 execute ai-knowledge-catalog --remote --file=db/migrations/0005_knowledge_profile.sql
 
       - name: Generate deploy config
         if: steps.cf.outputs.ready == 'true'
