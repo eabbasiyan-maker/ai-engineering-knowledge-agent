@@ -17,3 +17,5 @@ jobs:
       - run: npx tsc --noEmit
       - name: Audit mobile UI contract
         run: node scripts/mobile-ui-audit.mjs
+      - name: Audit visual cleanup contract
+        run: node scripts/visual-ui-audit.mjs
