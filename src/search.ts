@@ -50,7 +50,8 @@ async function exactAnchorRescue(env: Env, anchor: string) {
     reference_score: row.reference_score,
     chapter: row.chapter,
     section: row.section,
-    text: String(row.content_text)
+    text: String(row.content_text),
+    retrieval_kind: "exact_anchor"
   };
 }
 
@@ -71,6 +72,128 @@ function mergeMatches(groups: any[][]) {
   );
 }
 
+const lexicalStopwords = new Set([
+  "about", "after", "again", "against", "also", "approved", "both", "could",
+  "different", "does", "from", "fundamentally", "have", "into", "materially",
+  "more", "other", "perspective", "perspectives", "question", "sources", "state",
+  "that", "their", "these", "they", "this", "those", "what", "when", "where",
+  "which", "with", "would", "explicitly", "cite", "disagree", "disagreement",
+  "whether", "compatible", "first", "second", "true", "false", "position",
+  "says", "describes", "compare", "using", "production-grade",
+  "برای", "اگر", "منابع", "دیدگاه", "متفاوت", "اختلاف", "صریح", "کن", "بگو"
+]);
+
+function lexicalTerms(query: string) {
+  const tokens = query
+    .toLowerCase()
+    .match(/[\p{L}\p{N}_-]+/gu) ?? [];
+
+  const unique = Array.from(new Set(tokens))
+    .filter((token) => token.length >= 4 && !lexicalStopwords.has(token));
+
+  return unique
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 10);
+}
+
+function normalizeForMatch(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function searchMentionedSourceEvidence(env: Env, query: string) {
+  const catalog = await env.DB.prepare(
+    `SELECT source_id, title, grade, reference_score
+       FROM sources
+      WHERE status IN ('active', 'active_secondary')`
+  ).all<Record<string, unknown>>();
+
+  const normalizedQuery = normalizeForMatch(query);
+  const mentioned = (catalog.results ?? []).filter((source) => {
+    const title = normalizeForMatch(String(source.title ?? ""));
+    return title.length >= 8 && normalizedQuery.includes(title);
+  });
+
+  if (!mentioned.length) return [] as any[];
+
+  const terms = lexicalTerms(query);
+  if (!terms.length) return [] as any[];
+
+  const results: any[] = [];
+
+  for (const source of mentioned.slice(0, 4)) {
+    const sourceId = String(source.source_id ?? "");
+    if (!sourceId) continue;
+
+    const predicates: string[] = [];
+    const binds: string[] = [sourceId];
+
+    for (const term of terms) {
+      predicates.push(`(
+        lower(COALESCE(k.content_text, '')) LIKE ? OR
+        lower(COALESCE(k.section, '')) LIKE ?
+      )`);
+      const pattern = `%${term}%`;
+      binds.push(pattern, pattern);
+    }
+
+    const rows = await env.DB.prepare(
+      `SELECT
+          k.chunk_id, k.source_id, k.version_id, k.chapter, k.section,
+          k.content_text,
+          s.title, s.grade, s.reference_score
+       FROM knowledge_chunks k
+       JOIN sources s ON s.source_id = k.source_id
+       JOIN source_versions v ON v.version_id = k.version_id
+       WHERE k.source_id = ?
+         AND k.status = 'active'
+         AND v.status = 'active'
+         AND s.status IN ('active', 'active_secondary')
+         AND (${predicates.join(" OR ")})
+       LIMIT 220`
+    ).bind(...binds).all<Record<string, unknown>>();
+
+    const scored = (rows.results ?? [])
+      .map((row) => {
+        const text = String(row.content_text ?? "");
+        const heading = String(row.section ?? "").toLowerCase();
+        const haystack = `${heading} ${text}`.toLowerCase();
+        const hits = terms.filter((term) => haystack.includes(term));
+        const headingHits = terms.filter((term) => heading.includes(term)).length;
+        const coverage = hits.length / terms.length;
+        const score = Math.min(0.76, 0.58 + coverage * 0.16 + headingHits * 0.02);
+
+        return {
+          score,
+          chunk_id: row.chunk_id,
+          source_id: row.source_id,
+          version_id: row.version_id,
+          title: row.title,
+          grade: row.grade,
+          reference_score: row.reference_score,
+          chapter: row.chapter,
+          section: row.section,
+          text,
+          lexical_hits: hits.length,
+          retrieval_kind: "named_source"
+        };
+      })
+      .filter((row) => row.lexical_hits >= 1 && row.text)
+      .sort((a, b) =>
+        Number(b.lexical_hits) - Number(a.lexical_hits) ||
+        Number(b.score) - Number(a.score)
+      )
+      .slice(0, 2);
+
+    results.push(...scored);
+  }
+
+  return results;
+}
+
 export async function searchKnowledge(env: Env, query: string, topK = 8) {
   const embedded = await env.AI.run(
     (env.EMBEDDING_MODEL || "@cf/baai/bge-m3") as any,
@@ -81,8 +204,6 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
   if (!vector) throw new Error("Failed to embed query");
 
   const result = await env.VECTORIZE.query(vector, {
-    // Search a wider candidate pool because Vectorize deletions are asynchronous.
-    // D1 remains the final eligibility authority.
     topK: Math.min(Math.max(topK * 8, 24), 100),
     returnMetadata: "none"
   });
@@ -110,7 +231,6 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
 
     let text = String(row.content_text ?? "");
 
-    // Backward-compatible fallback for older R2-backed rows.
     if (!text && env.KNOWLEDGE_R2 && row.r2_text_key) {
       const key = String(row.r2_text_key);
       if (!key.startsWith("d1://")) {
@@ -131,18 +251,13 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
       reference_score: row.reference_score,
       chapter: row.chapter,
       section: row.section,
-      text
+      text,
+      retrieval_kind: "vector"
     });
 
-    // Keep a broader eligible set so the context builder can deliberately
-    // include independent sources instead of being dominated by one book.
     if (accepted.length >= eligibleTarget) break;
   }
 
-  // Deterministic guard for exact named facts. If a question asks for an exact
-  // benchmark/score/etc. and the distinctive named anchor is absent from the
-  // retrieved evidence and the active corpus, return no evidence rather than
-  // letting topical similarity produce a false partial answer.
   const exactAnchor = extractExactFactAnchor(query);
   if (exactAnchor) {
     const semanticHasAnchor = accepted.some((match) => {
@@ -159,32 +274,12 @@ export async function searchKnowledge(env: Env, query: string, topK = 8) {
 
   if (!requestsConflictReviewQuery(query)) return accepted;
 
-  const lexical = await searchKnowledgeLexical(env, query, topK);
-  return mergeMatches([accepted, lexical]);
-}
+  const [namedSources, lexical] = await Promise.all([
+    searchMentionedSourceEvidence(env, query),
+    searchKnowledgeLexical(env, query, topK)
+  ]);
 
-const lexicalStopwords = new Set([
-  "about", "after", "again", "against", "also", "approved", "both", "could",
-  "different", "does", "from", "fundamentally", "have", "into", "materially",
-  "more", "other", "perspective", "perspectives", "question", "sources", "state",
-  "that", "their", "these", "they", "this", "those", "what", "when", "where",
-  "which", "with", "would", "explicitly", "cite", "disagree", "disagreement",
-  "whether", "compatible", "first", "second", "true", "false", "position",
-  "برای", "اگر", "منابع", "دیدگاه", "متفاوت", "اختلاف", "صریح", "کن", "بگو"
-]);
-
-function lexicalTerms(query: string) {
-  const tokens = query
-    .toLowerCase()
-    .match(/[\p{L}\p{N}_-]+/gu) ?? [];
-
-  const unique = Array.from(new Set(tokens))
-    .filter((token) => token.length >= 4 && !lexicalStopwords.has(token));
-
-  // Prefer more distinctive terms but preserve enough of the original topic.
-  return unique
-    .sort((a, b) => b.length - a.length)
-    .slice(0, 8);
+  return mergeMatches([namedSources, accepted, lexical]);
 }
 
 export async function searchKnowledgeLexical(env: Env, query: string, topK = 12) {
@@ -240,7 +335,8 @@ export async function searchKnowledgeLexical(env: Env, query: string, topK = 12)
         chapter: row.chapter,
         section: row.section,
         text,
-        lexical_hits: hits.length
+        lexical_hits: hits.length,
+        retrieval_kind: "lexical"
       };
     })
     .filter((row) => row.lexical_hits >= 1 && row.text)
@@ -249,7 +345,6 @@ export async function searchKnowledgeLexical(env: Env, query: string, topK = 12)
       Number(b.score) - Number(a.score)
     );
 
-  // Prevent a single source from monopolizing lexical rescue results.
   const perSource = new Map<string, number>();
   const diversified: any[] = [];
   const target = Math.min(Math.max(topK * 2, 16), 30);
