@@ -365,6 +365,7 @@ h1, h2, h3, p { text-wrap: pretty; }
   :root {
     --type-h2: 1.375rem;
     --space-12: 40px;
+    --control-height: 48px;
   }
 
   .shell {
@@ -377,6 +378,47 @@ h1, h2, h3, p { text-wrap: pretty; }
 
   .actions { flex-direction: column; }
   .actions button { width: 100%; }
+
+  /* Final mobile pass: thumb-friendly controls and resilient long technical text. */
+  .home-page { overflow-x: clip; }
+
+  .home-page .brand,
+  .home-page .admin-link,
+  .home-page .main-nav a,
+  .home-page .suggestion-chips button {
+    min-height: 44px;
+  }
+
+  .home-page .main-nav,
+  .home-page .suggestion-chips {
+    -webkit-overflow-scrolling: touch;
+    scroll-padding-inline: 8px;
+  }
+
+  .home-page .suggestion-chips button {
+    scroll-snap-align: start;
+  }
+
+  .home-page .feedback button {
+    min-height: 48px;
+  }
+
+  .home-page .answered-question,
+  .home-page .source-title,
+  .home-page .book-why,
+  .home-page .learning-path small,
+  .home-page .topic-list span,
+  .home-page .question-list button {
+    overflow-wrap: anywhere;
+  }
+
+  .home-page .site-header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .home-page .home-footer {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
