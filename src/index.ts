@@ -12,6 +12,9 @@ import { getTelegramHealth, handleTelegramUpdate, verifyTelegramWebhook, type Te
 const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
 
 const UI_PATHS = new Set([
+  "/",
+  "/index.html",
+  "/app.js",
   "/ingest",
   "/ingest.html",
   "/admin",
@@ -27,11 +30,13 @@ const UI_PATHS = new Set([
 ]);
 
 async function proxyUiAsset(pathname: string): Promise<Response> {
-  const sourcePath = pathname === "/ingest"
-    ? "/ingest.html"
-    : pathname === "/admin"
-      ? "/admin.html"
-      : pathname;
+  const sourcePath = pathname === "/"
+    ? "/index.html"
+    : pathname === "/ingest"
+      ? "/ingest.html"
+      : pathname === "/admin"
+        ? "/admin.html"
+        : pathname;
   const upstream = await fetch(UI_ORIGIN + sourcePath, {
     headers: { "User-Agent": "ai-engineering-knowledge-agent-worker" }
   });
