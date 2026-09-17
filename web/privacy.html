@@ -1,19 +1,37 @@
 <!doctype html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Privacy Policy - AI Engineering Knowledge Agent</title>
+  <meta name="theme-color" content="#fbfaf7">
+  <title>حریم خصوصی — AI.Knowledge</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/management.css">
 </head>
-<body>
-  <main>
-    <h1>Privacy Policy</h1>
-    <p>Questions submitted through this service are processed by the central AI Engineering Knowledge Agent to retrieve relevant approved knowledge and generate an answer.</p>
-    <p>The service may store operational analytics needed for reliability, evaluation, and service improvement. Analytics can include channel, evidence status, confidence, latency, a deterministic question hash, and a short redacted question preview. The analytics table does not retain the full raw question.</p>
-    <p>User feedback may be stored together with the related request identifier.</p>
-    <p>Private source documents are not exposed through public clients. Public clients receive synthesized answers and source metadata.</p>
-    <p>The service runs on Cloudflare infrastructure and may use Workers AI, D1, and Vectorize.</p>
-    <p>User data is not sold.</p>
+<body class="management-page">
+  <a class="skip-link" href="#main-content">پرش به محتوای اصلی</a>
+  <main id="main-content" class="shell policy-shell" tabindex="-1">
+    <nav class="management-topbar" aria-label="میانبرها">
+      <a class="management-brand" href="/">AI.Knowledge</a>
+      <div class="management-links">
+        <a class="management-link" href="/">بازگشت به صفحه اصلی</a>
+      </div>
+    </nav>
+
+    <header class="hero">
+      <p class="eyebrow">PRIVACY</p>
+      <h1>حریم خصوصی</h1>
+      <p class="subtitle">این صفحه توضیح می‌دهد هنگام استفاده از AI.Knowledge چه داده‌هایی برای ارائه سرویس و تحلیل عملیاتی پردازش می‌شوند.</p>
+    </header>
+
+    <section class="card policy-card" aria-label="سیاست حریم خصوصی">
+      <p>سؤال‌هایی که از طریق این سرویس ارسال می‌شوند، توسط AI Engineering Knowledge Agent مرکزی پردازش می‌شوند تا دانش تأییدشده مرتبط بازیابی و پاسخ تولید شود.</p>
+      <p>سرویس ممکن است داده‌های عملیاتی لازم برای پایداری، ارزیابی و بهبود سرویس را ذخیره کند. این داده‌ها می‌توانند شامل کانال، وضعیت شواهد، قدرت شواهد، زمان پاسخ، هش قطعی سؤال و یک پیش‌نمایش کوتاه و پالایش‌شده از سؤال باشند. جدول Analytics متن کامل و خام سؤال را نگه نمی‌دارد.</p>
+      <p>بازخورد کاربر ممکن است همراه با شناسه درخواست مرتبط ذخیره شود.</p>
+      <p>اسناد خصوصی منابع از طریق Clientهای عمومی در دسترس قرار نمی‌گیرند. Client عمومی فقط پاسخ تولیدشده و متادیتای منبع را دریافت می‌کند.</p>
+      <p>این سرویس روی زیرساخت Cloudflare اجرا می‌شود و ممکن است از Workers AI، D1 و Vectorize استفاده کند.</p>
+      <p>داده‌های کاربران فروخته نمی‌شوند.</p>
+    </section>
   </main>
 </body>
 </html>
