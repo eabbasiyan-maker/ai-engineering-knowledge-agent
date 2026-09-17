@@ -115,7 +115,6 @@ jobs:
         if: steps.cf.outputs.ready == 'true'
         run: npx wrangler deploy --config wrangler.deploy.jsonc
 
-
       - name: Smoke test supported answer
         if: steps.cf.outputs.ready == 'true'
         shell: bash
@@ -124,7 +123,10 @@ jobs:
           const url = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev/api/v1/ask";
           const res = await fetch(url, {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            headers: {
+              "content-type": "application/json",
+              "x-agent-traffic": "automated_test"
+            },
             body: JSON.stringify({
               question: "What are common ReAct failure modes and how can they be mitigated?",
               channel: "api",
@@ -157,7 +159,10 @@ jobs:
           const url = "https://ai-engineering-knowledge-agent.e-abbasiyan.workers.dev/api/v1/ask";
           const res = await fetch(url, {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            headers: {
+              "content-type": "application/json",
+              "x-agent-traffic": "automated_test"
+            },
             body: JSON.stringify({
               question: "What is the recommended orbital insertion burn for a crewed mission to Neptune?",
               channel: "api",
@@ -180,7 +185,6 @@ jobs:
           }, null, 2));
           NODE
 
-
       - name: Smoke test feedback
         if: steps.cf.outputs.ready == 'true'
         shell: bash
@@ -190,7 +194,10 @@ jobs:
 
           const ask = await fetch(base + "/api/v1/ask", {
             method: "POST",
-            headers: { "content-type": "application/json" },
+            headers: {
+              "content-type": "application/json",
+              "x-agent-traffic": "automated_test"
+            },
             body: JSON.stringify({
               question: "What are common ReAct failure modes?",
               channel: "web",
@@ -216,7 +223,6 @@ jobs:
           console.log(JSON.stringify(body, null, 2));
           NODE
 
-
       - name: Smoke test analytics capture
         if: steps.cf.outputs.ready == 'true'
         shell: bash
@@ -235,7 +241,6 @@ jobs:
               console.log(JSON.stringify({request_count: count}));
             });
           '
-
 
       - name: Smoke test Worker-hosted ingestion UI
         if: steps.cf.outputs.ready == 'true'
