@@ -24,6 +24,46 @@ function clearMessages() {
   errorEl.textContent = "";
 }
 
+function isManifest(parsed) {
+  return Boolean(
+    parsed &&
+    typeof parsed === "object" &&
+    parsed.source_id &&
+    parsed.version_id &&
+    parsed.checksum &&
+    Array.isArray(parsed.chunks) &&
+    parsed.chunks.length
+  );
+}
+
+function collectManifests(files) {
+  const manifests = [];
+
+  for (const [name, bytes] of Object.entries(files)) {
+    const lower = name.toLowerCase();
+
+    if (lower.endsWith(".json")) {
+      try {
+        const parsed = JSON.parse(strFromU8(bytes));
+        if (isManifest(parsed)) manifests.push({ name, parsed });
+      } catch {
+        // Ignore unrelated or malformed JSON files.
+      }
+      continue;
+    }
+
+    if (lower.endsWith(".zip")) {
+      try {
+        manifests.push(...collectManifests(unzipSync(bytes)));
+      } catch {
+        // Ignore unrelated nested ZIP files.
+      }
+    }
+  }
+
+  return manifests;
+}
+
 button?.addEventListener("click", async () => {
   clearMessages();
 
@@ -39,19 +79,16 @@ button?.addEventListener("click", async () => {
 
     const zipBytes = new Uint8Array(await file.arrayBuffer());
     const files = unzipSync(zipBytes);
-
-    const manifests = Object.entries(files)
-      .filter(([name]) => /^BOOK-\d+\.json$/i.test(name.split("/").pop() || ""))
-      .map(([name, bytes]) => {
-        const parsed = JSON.parse(strFromU8(bytes));
-        return { name, parsed };
-      })
-      .sort((a, b) =>
-        String(a.parsed.source_id).localeCompare(String(b.parsed.source_id))
-      );
+    const manifests = collectManifests(files).sort((a, b) =>
+      String(a.parsed.source_id).localeCompare(String(b.parsed.source_id))
+    );
 
     if (!manifests.length) {
-      throw new Error("هیچ manifest معتبری داخل ZIP پیدا نشد.");
+      const names = Object.keys(files).slice(0, 12).join("، ");
+      throw new Error(
+        "هیچ manifest معتبری داخل ZIP پیدا نشد." +
+        (names ? " فایل‌های دیده‌شده: " + names : "")
+      );
     }
 
     const completed = [];
@@ -62,10 +99,6 @@ button?.addEventListener("click", async () => {
       const versionId = String(manifest.version_id || "");
       const checksum = String(manifest.checksum || "");
       const chunks = Array.isArray(manifest.chunks) ? manifest.chunks : [];
-
-      if (!sourceId || !versionId || !checksum || !chunks.length) {
-        throw new Error("Manifest ناقص است: " + manifests[bookIndex].name);
-      }
 
       showStatus(
         "کتاب " + (bookIndex + 1) + " از " + manifests.length +
