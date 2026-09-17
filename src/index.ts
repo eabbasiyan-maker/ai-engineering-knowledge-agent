@@ -14,7 +14,10 @@ const UI_ORIGIN = "https://ai-engineering-knowledge-agent-web.pages.dev";
 const UI_PATHS = new Set([
   "/ingest",
   "/ingest.html",
+  "/admin",
+  "/admin.html",
   "/styles.css",
+  "/admin.js",
   "/ingest-app.js",
   "/ingest-utils.js",
   "/ingest-pdf.js",
@@ -24,7 +27,11 @@ const UI_PATHS = new Set([
 ]);
 
 async function proxyUiAsset(pathname: string): Promise<Response> {
-  const sourcePath = pathname === "/ingest" ? "/ingest.html" : pathname;
+  const sourcePath = pathname === "/ingest"
+    ? "/ingest.html"
+    : pathname === "/admin"
+      ? "/admin.html"
+      : pathname;
   const upstream = await fetch(UI_ORIGIN + sourcePath, {
     headers: { "User-Agent": "ai-engineering-knowledge-agent-worker" }
   });
@@ -117,7 +124,7 @@ export default {
         return json({
           ok: true,
           service: "ai-engineering-knowledge-agent",
-          phase: 5
+          phase: 8
         });
       }
 
