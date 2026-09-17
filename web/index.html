@@ -3,52 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#f7fbff" />
+  <meta name="theme-color" content="#fbfaf7" />
   <title>AI.Knowledge — پرسش از کتابخانه مهندسی هوش مصنوعی</title>
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/home.css" />
-  <style>
-    .knowledge-list-card,
-    .books-section {
-      border: 1px solid var(--home-line);
-      background: var(--home-surface);
-      box-shadow: 0 10px 30px rgba(45,93,150,.07);
-      border-radius: 20px;
-    }
-    .knowledge-list-card { padding: 18px 22px; }
-    .knowledge-bullets { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-    .knowledge-bullets li { position: relative; padding: 13px 22px 13px 0; border-bottom: 1px solid #eef3f9; color: #294765; line-height: 1.75; }
-    .knowledge-bullets li::before { content: "•"; position: absolute; right: 3px; top: 11px; color: var(--home-blue); font-size: 23px; }
-    .knowledge-bullets strong { color: #152845; }
-    .knowledge-bullets button { border: 0; background: transparent; padding: 0; color: inherit; text-align: right; cursor: pointer; }
-    .knowledge-bullets button:hover strong { color: var(--home-blue); }
-
-    .books-section { margin-top: 18px; padding: 22px; }
-    .books-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
-    .books-head h2 { margin: 0; color: #12233d; font-size: 24px; }
-    .books-head p { margin: 6px 0 0; color: var(--home-muted); line-height: 1.8; }
-    .book-group + .book-group { margin-top: 20px; padding-top: 18px; border-top: 1px solid #e8eef6; }
-    .book-group-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #183553; font-weight: 800; }
-    .book-group-title span { padding: 5px 9px; border-radius: 999px; background: #eaf4ff; color: #1672d8; font-size: 11px; }
-    .book-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-    .book-list li { padding: 12px 0; border-bottom: 1px solid #eef3f9; }
-    .book-title-row { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-    .book-title-row strong { color: #152845; font-size: 14px; direction: ltr; unicode-bidi: isolate; }
-    .book-meta { color: #8a9ab0; font-size: 11px; }
-    .book-why { display: block; margin-top: 5px; color: #617994; font-size: 12px; line-height: 1.7; }
-
-    @media (max-width: 680px) {
-      .knowledge-bullets,
-      .book-list { grid-template-columns: 1fr; }
-      .knowledge-list-card,
-      .books-section { padding: 16px; border-radius: 16px; }
-      .books-head { display: block; }
-      .books-head h2 { font-size: 21px; }
-      .book-title-row { display: block; }
-      .book-meta { display: block; margin-top: 3px; }
-    }
-  </style>
 </head>
 <body class="home-page">
   <header class="site-header">
