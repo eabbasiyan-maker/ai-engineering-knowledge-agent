@@ -3,45 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>AI Engineering Knowledge Agent</title>
-  <meta name="description" content="پرسش از پایگاه دانش مهندسی هوش مصنوعی با پاسخ مبتنی بر منبع." />
+  <meta name="theme-color" content="#f7fbff" />
+  <title>AI.Knowledge — پرسش از کتابخانه مهندسی هوش مصنوعی</title>
+  <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
-  <main class="shell">
-    <header class="hero">
-      <div>
-        <p class="eyebrow">AI Engineering Knowledge Agent</p>
-        <h1>از دانش مهندسی هوش مصنوعی بپرس</h1>
-        <p class="subtitle">پاسخ‌ها از منابع تأییدشده بازیابی می‌شوند و همراه با منبع و سطح اطمینان نمایش داده می‌شوند.</p>
-      </div>
-      <span class="status-dot" title="Knowledge-backed"></span>
-    </header>
+<body class="home-page">
+  <header class="site-header">
+    <div class="nav-shell">
+      <a class="brand" href="/" aria-label="AI.Knowledge">
+        <span class="brand-mark">▤</span>
+        <span>
+          <strong>AI.Knowledge</strong>
+          <small>دانش برای ساختن مهندسان بهتر</small>
+        </span>
+      </a>
 
-    <section class="card ask-card">
-      <form id="ask-form">
-        <label for="question">سؤال</label>
-        <textarea id="question" name="question" rows="4" placeholder="مثلاً: Reflection در AI Agent چه زمانی مفید است؟" required></textarea>
-        <div class="actions">
-          <button id="ask-button" class="primary" type="submit">پرسیدن</button>
-          <button id="clear-button" class="ghost" type="button">پاک کردن</button>
+      <nav class="main-nav" aria-label="ناوبری اصلی">
+        <a class="active" href="#ask">صفحه اصلی</a>
+        <a href="#topics">حوزه‌های دانش</a>
+        <a href="#about">درباره ما</a>
+      </nav>
+
+      <a class="admin-link" href="/admin">⚙ پنل مدیریت</a>
+    </div>
+  </header>
+
+  <main class="home-shell">
+    <section class="home-hero" id="ask">
+      <div class="hero-visual" aria-hidden="true">
+        <div class="hero-note">سؤال کن<br>یاد بگیر<br>پیشرفت کن!</div>
+        <div class="mascot">
+          <div class="mascot-head"><span>⌣</span><span>⌣</span></div>
+          <div class="mascot-book">📘</div>
         </div>
-      </form>
+      </div>
+
+      <div class="hero-copy">
+        <h1>از کتابخانه مهندسی هوش مصنوعی بپرس</h1>
+        <p>پاسخ‌های دقیق و قابل بررسی، بر اساس کتاب‌ها و منابع معتبر و تأییدشده.</p>
+      </div>
+
+      <section class="ask-surface">
+        <form id="ask-form" class="ask-form">
+          <input id="question" name="question" type="text" autocomplete="off"
+            placeholder="سؤال خود را بنویسید..." required />
+          <button id="ask-button" class="primary ask-submit" type="submit">پرسیدن <span>◁</span></button>
+        </form>
+        <div class="suggestion-chips" aria-label="نمونه سؤال‌ها">
+          <button type="button" data-question="RAG چیست و چه زمانی از آن استفاده می‌کنیم؟">RAG چیست؟</button>
+          <button type="button" data-question="یک AI Agent چگونه کار می‌کند؟">یک Agent چگونه کار می‌کند؟</button>
+          <button type="button" data-question="برای نوشتن پرامپت بهتر از چه روشی استفاده کنیم؟">بهترین روش پرامپت‌نویسی چیست؟</button>
+        </div>
+      </section>
     </section>
 
-    <section id="loading" class="card loading hidden" aria-live="polite">
+    <section id="loading" class="home-card loading hidden" aria-live="polite">
       <span class="spinner"></span>
       <span>در حال جست‌وجو در دانش تأییدشده…</span>
     </section>
+    <section id="error-box" class="home-card error hidden" role="alert"></section>
 
-    <section id="error-box" class="card error hidden" role="alert"></section>
-
-    <section id="answer-section" class="hidden">
-      <article class="card answer-card">
+    <section id="answer-section" class="answer-layout hidden">
+      <article class="home-card answer-card">
+        <div class="answer-question-wrap">
+          <span class="mini-label">سؤال شما</span>
+          <p id="answered-question" class="answered-question"></p>
+        </div>
         <div class="answer-head">
           <div>
-            <p class="section-label">پاسخ</p>
+            <span class="mini-label">پاسخ بر اساس دانش تأییدشده</span>
             <div id="badges" class="badges"></div>
           </div>
           <button id="copy-button" class="icon-button" type="button">کپی پاسخ</button>
@@ -55,10 +86,10 @@
         </div>
       </article>
 
-      <section class="card sources-card">
+      <section class="home-card sources-card">
         <div class="sources-head">
           <div>
-            <p class="section-label">منابع استفاده‌شده</p>
+            <span class="mini-label">منابع استفاده‌شده</span>
             <p class="muted">فقط منابع فعال و تأییدشده در پاسخ استفاده می‌شوند.</p>
           </div>
           <span id="source-count" class="count"></span>
@@ -67,10 +98,108 @@
       </section>
     </section>
 
-    <footer>
-      <span>Evidence-first • One shared knowledge brain</span>
-    </footer>
+    <section class="discover-section" id="topics">
+      <div class="section-heading">
+        <div>
+          <h2>می‌تونی درباره این موضوع‌ها سؤال بپرسی</h2>
+          <p>اگر جونیور هستی، از یکی از این چهار مسیر شروع کن.</p>
+        </div>
+      </div>
+
+      <div id="topic-cards" class="topic-grid">
+        <button class="topic-card topic-agents" type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟">
+          <span class="topic-icon">👥</span>
+          <strong>ساخت Agent</strong>
+          <small>طراحی Agent، ابزارها و حافظه</small>
+        </button>
+        <button class="topic-card topic-rag" type="button" data-question="RAG چیست و چطور جست‌وجوی دانش را بهتر می‌کند؟">
+          <span class="topic-icon">▰</span>
+          <strong>RAG و جست‌وجو</strong>
+          <small>اتصال دانش و جست‌وجوی بهتر</small>
+        </button>
+        <button class="topic-card topic-prompt" type="button" data-question="چطور یک پرامپت واضح و مؤثر بنویسم؟">
+          <span class="topic-icon">✎</span>
+          <strong>پرامپت‌نویسی</strong>
+          <small>نوشتن دستور واضح برای مدل</small>
+        </button>
+        <button class="topic-card topic-eval" type="button" data-question="چطور کیفیت پاسخ مدل را ارزیابی و تست کنیم؟">
+          <span class="topic-icon">▥</span>
+          <strong>ارزیابی و تست</strong>
+          <small>بررسی کیفیت پاسخ و خطاها</small>
+        </button>
+      </div>
+    </section>
+
+    <section class="questions-grid" aria-label="سؤال‌های پیشنهادی">
+      <article class="question-panel">
+        <div class="panel-head">
+          <div>
+            <span class="panel-icon hot">●</span>
+            <div>
+              <h3>سؤال‌های پرتکرار</h3>
+              <p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p>
+            </div>
+          </div>
+        </div>
+        <div id="frequent-questions" class="question-list">
+          <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
+          <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
+          <button type="button" data-question="چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟">چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟</button>
+          <button type="button" data-question="Reflection چه فرقی با Planning دارد؟">Reflection چه فرقی با Planning دارد؟</button>
+        </div>
+      </article>
+
+      <article class="question-panel">
+        <div class="panel-head">
+          <div>
+            <span class="panel-icon recent">◷</span>
+            <div>
+              <h3>آخرین سؤال‌ها</h3>
+              <p>سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p>
+            </div>
+          </div>
+        </div>
+        <div id="recent-questions" class="question-list">
+          <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
+          <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
+          <button type="button" data-question="چطور Hallucination را کمتر کنیم؟">چطور Hallucination را کمتر کنیم؟</button>
+          <button type="button" data-question="اولین قدم برای ساخت Agent چیست؟">اولین قدم برای ساخت Agent چیست؟</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="stats-strip" aria-label="وضعیت کتابخانه">
+      <div class="stat-item">
+        <span class="stat-icon">▤</span>
+        <div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon">▰</span>
+        <div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div>
+      </div>
+      <div class="stat-item">
+        <span class="stat-icon">□</span>
+        <div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div>
+      </div>
+    </section>
+
+    <section id="about" class="trust-strip">
+      <div>
+        <h2>چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2>
+        <p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p>
+      </div>
+      <div class="trust-badges">
+        <span>✓ مستند</span>
+        <span>! مدرک ناکافی</span>
+        <span>≠ اختلاف منابع</span>
+      </div>
+    </section>
   </main>
+
+  <footer class="home-footer">
+    <span>AI.Knowledge — یادگیری بهتر، ساختن بهتر</span>
+    <span><a href="/admin">پنل مدیریت</a></span>
+  </footer>
 
   <script src="/app.js" defer></script>
 </body>
