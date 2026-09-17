@@ -80,13 +80,20 @@ function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function hasKeyword(text: string, keyword: string) {
-  const needle = keyword.toLowerCase();
-  if (/^[a-z0-9-]{2,5}$/i.test(needle)) {
-    return new RegExp(`(^|[^a-z0-9])${escapeRegex(needle)}([^a-z0-9]|$)`, "i").test(text);
+function keywordPattern(keyword: string) {
+  const escaped = escapeRegex(keyword.toLowerCase());
+  if (/^[a-z0-9-]{2,5}$/i.test(keyword)) {
+    return `(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`;
   }
-  return text.includes(needle);
+  return escaped.replace(/\\ /g, "\\s+");
 }
+
+const DOMAIN_MATCHERS = new Map(
+  KNOWLEDGE_DOMAINS.map((rule) => [
+    rule.id,
+    new RegExp(rule.keywords.map(keywordPattern).join("|"), "i")
+  ])
+);
 
 function parseHeadingPath(value: string | null): string[] {
   if (!value) return [];
@@ -107,6 +114,16 @@ function chunkLabel(row: ChunkRow) {
 }
 
 function classifyChunks(rows: ChunkRow[]) {
+  const prepared = rows.map((row) => ({
+    row,
+    text: [
+      row.chapter ?? "",
+      row.section ?? "",
+      row.heading_path ?? "",
+      row.content_text ?? ""
+    ].join("\n").toLowerCase()
+  }));
+
   const result = new Map<string, {
     domain_id: string;
     domain_label: string;
@@ -120,20 +137,14 @@ function classifyChunks(rows: ChunkRow[]) {
     const sampleIds: string[] = [];
     const sampleSections: string[] = [];
     const seenSections = new Set<string>();
+    const matcher = DOMAIN_MATCHERS.get(rule.id)!;
 
-    for (const row of rows) {
-      const text = [
-        row.chapter ?? "",
-        row.section ?? "",
-        row.heading_path ?? "",
-        row.content_text ?? ""
-      ].join("\n").toLowerCase();
-
-      if (!rule.keywords.some((keyword) => hasKeyword(text, keyword))) continue;
+    for (const item of prepared) {
+      if (!matcher.test(item.text)) continue;
       count += 1;
 
-      if (sampleIds.length < 5) sampleIds.push(row.chunk_id);
-      const label = chunkLabel(row);
+      if (sampleIds.length < 5) sampleIds.push(item.row.chunk_id);
+      const label = chunkLabel(item.row);
       if (label && !seenSections.has(label) && sampleSections.length < 5) {
         seenSections.add(label);
         sampleSections.push(label);
@@ -158,7 +169,7 @@ function classifyChunks(rows: ChunkRow[]) {
 async function loadVersionChunks(env: Env, sourceId: string, versionId: string) {
   const rows = await env.DB.prepare(
     `SELECT chunk_id, source_id, version_id, chapter, section, heading_path,
-            chunk_index, content_hash, content_text
+            chunk_index, content_hash, substr(content_text, 1, 700) AS content_text
      FROM knowledge_chunks
      WHERE source_id = ? AND version_id = ?
      ORDER BY chunk_index ASC`
