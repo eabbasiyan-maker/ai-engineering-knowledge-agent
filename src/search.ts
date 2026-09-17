@@ -13,10 +13,8 @@ function extractExactFactAnchor(query: string) {
   const phrases = query.match(/\b(?:[A-Z][A-Za-z0-9-]*\s+){1,}[A-Z][A-Za-z0-9-]*\b/g) ?? [];
   if (!phrases.length) return null;
 
-  return phrases
-    .sort((a, b) => b.length - a.length)[0]
-    .trim()
-    .toLowerCase();
+  const anchor = phrases.sort((a, b) => b.length - a.length)[0];
+  return anchor ? anchor.trim().toLowerCase() : null;
 }
 
 async function exactAnchorRescue(env: Env, anchor: string) {
