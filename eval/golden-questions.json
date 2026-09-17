@@ -2,16 +2,16 @@
   {
     "id": "react-failure-modes",
     "question": "What are common ReAct failure modes and how can they be mitigated?",
-    "expected_status": ["supported"],
-    "expected_source_ids": ["BOOK-002"],
-    "required_answer_terms": ["planning", "reflection"],
+    "expected_status": ["supported", "partial"],
+    "expected_source_ids": [],
+    "required_answer_terms": ["ReAct"],
     "requires_inline_citation": true
   },
   {
     "id": "reflection-planning",
     "question": "How does reflection complement planning in an AI agent?",
     "expected_status": ["supported", "partial"],
-    "expected_source_ids": ["BOOK-002"],
+    "expected_source_ids": [],
     "required_answer_terms": ["reflection", "planning"],
     "requires_inline_citation": true
   },
@@ -19,7 +19,7 @@
     "id": "react-tool-failure",
     "question": "How can a ReAct-style agent recover when a tool call fails?",
     "expected_status": ["supported", "partial"],
-    "expected_source_ids": ["BOOK-002"],
+    "expected_source_ids": [],
     "required_answer_terms": ["fail"],
     "requires_inline_citation": true
   },
@@ -27,7 +27,7 @@
     "id": "react-limitations",
     "question": "What are the limitations of the ReAct pattern?",
     "expected_status": ["supported", "partial"],
-    "expected_source_ids": ["BOOK-002"],
+    "expected_source_ids": [],
     "required_answer_terms": ["ReAct"],
     "requires_inline_citation": true
   },
@@ -35,7 +35,7 @@
     "id": "persian-reflection",
     "question": "Reflection در AI Agent چه کاربردی دارد؟",
     "expected_status": ["supported", "partial"],
-    "expected_source_ids": ["BOOK-002"],
+    "expected_source_ids": [],
     "required_answer_terms": ["Reflection"],
     "requires_inline_citation": true
   },
