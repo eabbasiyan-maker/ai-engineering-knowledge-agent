@@ -15,6 +15,10 @@ const copyButton = document.querySelector("#copy-button");
 const feedback = document.querySelector("#feedback");
 const feedbackStatus = document.querySelector("#feedback-status");
 const updatedEl = document.querySelector("#stat-updated");
+const booksEl = document.querySelector("#stat-books");
+const chunksEl = document.querySelector("#stat-chunks");
+const frequentQuestionsEl = document.querySelector("#frequent-questions");
+const recentQuestionsEl = document.querySelector("#recent-questions");
 
 let lastResponse = null;
 
@@ -151,6 +155,51 @@ async function ask(q) {
   }
 }
 
+function renderQuestionList(root, items) {
+  if (!root || !Array.isArray(items) || items.length === 0) return;
+  root.replaceChildren();
+  for (const item of items.slice(0, 4)) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.dataset.question = item;
+    button.textContent = item;
+    root.append(button);
+  }
+}
+
+function formatPersianDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  try {
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(date);
+  } catch {
+    return "امروز";
+  }
+}
+
+async function loadHomeData() {
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/home`);
+    if (!response.ok) return;
+    const data = await response.json();
+
+    const library = data.library || {};
+    if (booksEl) booksEl.textContent = `${Number(library.active_books || 0).toLocaleString("fa-IR")} کتاب فعال`;
+    if (chunksEl) chunksEl.textContent = `${Number(library.active_chunks || 0).toLocaleString("fa-IR")} بخش دانش`;
+    if (updatedEl) updatedEl.textContent = formatPersianDate(library.latest_update);
+
+    renderQuestionList(frequentQuestionsEl, data.frequent_questions);
+    renderQuestionList(recentQuestionsEl, data.recent_questions);
+  } catch {
+    // Keep curated fallback content already present in HTML.
+  }
+}
+
 form?.addEventListener("submit", (event) => {
   event.preventDefault();
   ask(question?.value);
@@ -197,16 +246,4 @@ feedback?.addEventListener("click", async (event) => {
   }
 });
 
-if (updatedEl) {
-  try {
-    const parts = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).formatToParts(new Date());
-    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    updatedEl.textContent = `${values.year}/${values.month}/${values.day}`;
-  } catch {
-    updatedEl.textContent = "امروز";
-  }
-}
+loadHomeData();
