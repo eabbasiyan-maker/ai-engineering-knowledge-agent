@@ -13,6 +13,13 @@ const statusLabels = {
   conflict: "اختلاف منابع"
 };
 
+const coverageLabels = {
+  strong: "پوشش قوی",
+  medium: "پوشش متوسط",
+  limited: "پوشش محدود",
+  none: "فعلاً پوشش قابل اتکا نداریم"
+};
+
 function showError(message) {
   errorEl.textContent = message;
   errorEl.classList.remove("hidden");
@@ -76,6 +83,17 @@ function fill(selector, items, renderer, emptyText = "داده‌ای وجود �
   for (const item of items) root.append(renderer(item));
 }
 
+async function fetchAdminJson(path, token) {
+  const response = await fetch(API_BASE + path, {
+    headers: { "Authorization": "Bearer " + token }
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "دریافت گزارش ناموفق بود.");
+  }
+  return data;
+}
+
 function renderPlainSummary(data) {
   const root = document.getElementById("plain-summary");
   const traffic = data.traffic || {};
@@ -121,6 +139,64 @@ function renderPlainSummary(data) {
   }
 }
 
+function renderKnowledgeCoverage(knowledge) {
+  const coverage = knowledge?.coverage || {};
+  fill("#knowledge-coverage", coverage.domains, (item) => {
+    const refs = item.average_reference_score == null
+      ? "Reference Score ثبت نشده"
+      : `میانگین Reference Score: ${faNumber(item.average_reference_score)}`;
+    const sourceNames = (item.active_sources || [])
+      .slice(0, 3)
+      .map((source) => source.source_id)
+      .join("، ");
+
+    return makeRow(
+      `${coverageLabels[item.coverage_level] || item.coverage_label} — ${item.domain_label}`,
+      `${faNumber(item.source_count)} منبع فعال • ${faNumber(item.independent_source_count)} منبع/ناشر مستقل • ${faNumber(item.evidence_chunk_count)} Chunk دارای نشانه مستقیم • ${refs}${sourceNames ? ` • نمونه منابع: ${sourceNames}` : ""}`
+    );
+  }, "هنوز نقشه پوشش دانش ساخته نشده است");
+}
+
+function renderKnowledgeChanges(knowledge) {
+  const changes = knowledge?.changes || {};
+  const baseline = changes.baseline || {};
+  const baselineRoot = document.getElementById("knowledge-baseline");
+  baselineRoot.replaceChildren();
+
+  const baselineText = document.createElement("p");
+  baselineText.className = "muted";
+  baselineText.textContent = `خط مبنای فعلی: ${faNumber(baseline.source_count)} کتاب/منبع فعال، ${faNumber(baseline.version_count)} نسخه فعال و ${faNumber(baseline.chunk_count)} Chunk. از این خط مبنا به بعد هر نسخه جدید با نسخه قبلی مقایسه می‌شود.`;
+  baselineRoot.append(baselineText);
+
+  fill("#knowledge-changes", changes.changes, (item) => {
+    const kind = item.change_type === "new_source"
+      ? "منبع جدید فعال شد"
+      : "نسخه کتاب به‌روزرسانی شد";
+    const versionText = item.previous_version_id
+      ? `${item.previous_version_id} ← ${item.version_id}`
+      : item.version_id;
+    const domains = (item.added_domains || [])
+      .map((domain) => domain.domain_label)
+      .slice(0, 5)
+      .join("، ");
+    const sections = (item.sample_added_sections || [])
+      .map((section) => section.section)
+      .slice(0, 3)
+      .join("، ");
+
+    const details = [
+      kind,
+      `نسخه: ${versionText}`,
+      `${faNumber(item.added_chunk_count)} Chunk جدید/تغییرکرده`,
+      `${faNumber(item.removed_chunk_count)} Chunk حذف‌شده`,
+      domains ? `حوزه‌های اضافه/تقویت‌شده: ${domains}` : null,
+      sections ? `نمونه بخش‌های جدید: ${sections}` : null
+    ].filter(Boolean).join(" • ");
+
+    return makeRow(`${item.source_id} — ${item.title}`, details);
+  }, "هنوز بعد از ایجاد خط مبنا، کتاب جدید یا نسخه جدیدی فعال نشده است. اولین به‌روزرسانی بعدی اینجا دقیق ثبت می‌شود.");
+}
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError();
@@ -131,13 +207,14 @@ form.addEventListener("submit", async (event) => {
   if (!token) return;
 
   try {
-    const response = await fetch(API_BASE + "/admin/analytics/summary?days=" + days, {
-      headers: { "Authorization": "Bearer " + token }
-    });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data?.error?.message || "دریافت گزارش ناموفق بود.");
+    const [data, knowledge] = await Promise.all([
+      fetchAdminJson("/admin/analytics/summary?days=" + days, token),
+      fetchAdminJson("/admin/knowledge/overview?limit=10", token)
+    ]);
 
     renderPlainSummary(data);
+    renderKnowledgeCoverage(knowledge);
+    renderKnowledgeChanges(knowledge);
 
     const totals = data.totals || {};
     const traffic = data.traffic || {};
