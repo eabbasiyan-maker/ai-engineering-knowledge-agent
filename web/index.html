@@ -52,7 +52,7 @@
       <section class="ask-surface">
         <form id="ask-form" class="ask-form">
           <input id="question" name="question" type="text" autocomplete="off" placeholder="سؤال خود را بنویسید..." required />
-          <button id="ask-button" class="primary ask-submit" type="submit">پرسیدن <span>◁</span></button>
+          <button id="ask-button" class="primary ask-submit" type="submit"><span id="ask-button-label">پرسیدن</span> <span aria-hidden="true">◁</span></button>
         </form>
         <div class="suggestion-chips" aria-label="نمونه سؤال‌ها">
           <button type="button" data-question="RAG چیست و چه زمانی از آن استفاده می‌کنیم؟">RAG چیست؟</button>
@@ -62,10 +62,24 @@
       </section>
     </section>
 
-    <section id="loading" class="home-card loading hidden" aria-live="polite">
-      <span class="spinner"></span><span>در حال جست‌وجو در دانش تأییدشده…</span>
+    <section id="loading" class="system-state state-loading hidden" role="status" aria-live="polite" aria-atomic="true">
+      <span class="state-symbol" aria-hidden="true"><span class="spinner"></span></span>
+      <div class="state-copy">
+        <strong>در حال جست‌وجو در دانش تأییدشده</strong>
+        <p>منابع مرتبط پیدا و بررسی می‌شوند؛ ممکن است چند لحظه طول بکشد.</p>
+      </div>
     </section>
-    <section id="error-box" class="home-card error hidden" role="alert"></section>
+
+    <section id="error-box" class="system-state state-error hidden" role="alert" aria-atomic="true" tabindex="-1">
+      <span class="state-symbol" aria-hidden="true">!</span>
+      <div class="state-copy">
+        <strong id="error-title">دریافت پاسخ انجام نشد</strong>
+        <p id="error-message">لطفاً دوباره تلاش کن.</p>
+        <div class="state-actions">
+          <button id="retry-button" class="ghost" type="button">تلاش دوباره</button>
+        </div>
+      </div>
+    </section>
 
     <section id="answer-section" class="answer-layout hidden" aria-live="polite" tabindex="-1">
       <article class="home-card answer-card">
