@@ -1,0 +1,269 @@
+/* Shared visual system for Admin, Ingestion and Privacy pages. */
+.management-page {
+  color: var(--color-text);
+  background:
+    radial-gradient(circle at 88% 2%, rgba(70, 48, 111, .07), transparent 25rem),
+    radial-gradient(circle at 6% 22%, rgba(199, 123, 18, .055), transparent 22rem),
+    var(--color-bg);
+}
+
+.management-page .shell {
+  width: min(1080px, calc(100% - 36px));
+  padding-top: var(--space-5);
+}
+
+.management-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.management-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: rgba(255,255,255,.78);
+  font-weight: 800;
+}
+
+.management-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.management-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  background: var(--color-surface);
+  font-size: var(--type-support);
+  font-weight: 750;
+  transition: background var(--motion-fast), border-color var(--motion-fast), transform var(--motion-fast);
+}
+
+.management-link:hover {
+  border-color: #cfc3d8;
+  background: var(--color-primary-soft);
+  transform: translateY(-1px);
+}
+
+.management-page .hero {
+  background: linear-gradient(132deg, #f5f0fa 0%, #fff 58%, #fff8ec 100%);
+}
+
+.management-page .hero h1 {
+  max-width: 780px;
+}
+
+.management-page h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--type-h2);
+  line-height: 1.55;
+}
+
+.management-page .card {
+  scroll-margin-top: var(--space-5);
+}
+
+.management-page .ask-card label,
+.field-label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--type-support);
+  font-weight: 750;
+}
+
+.field-gap {
+  margin-top: var(--space-5);
+}
+
+.form-control {
+  width: 100%;
+  min-height: 48px;
+  padding: 11px 13px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  font-size: var(--type-body);
+  line-height: 1.5;
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast), background var(--motion-fast);
+}
+
+.form-control:hover {
+  border-color: #cfc3d8;
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  background: #fff;
+}
+
+input[type="file"].form-control {
+  padding: 7px 9px;
+}
+
+input[type="file"].form-control::file-selector-button {
+  min-height: 36px;
+  margin-inline-end: 10px;
+  padding: 6px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.management-page .actions {
+  margin-top: var(--space-3);
+}
+
+.management-page .sources {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.management-page .source {
+  min-width: 0;
+  background: #fffdf9;
+  overflow-wrap: anywhere;
+}
+
+.management-page .source .muted {
+  margin: 5px 0 0;
+}
+
+.tone-info {
+  border-inline-start: 3px solid var(--color-primary);
+}
+
+.tone-success {
+  border-inline-start: 3px solid var(--color-success);
+}
+
+.tone-accent {
+  border-inline-start: 3px solid var(--color-accent);
+}
+
+.summary-copy {
+  font-size: var(--type-body);
+  line-height: 2;
+}
+
+.summary-line {
+  margin: 4px 0;
+}
+
+.metric-grid {
+  margin-top: var(--space-5);
+}
+
+.metric-value {
+  margin-top: 2px;
+  color: var(--color-primary);
+  font-size: clamp(1.55rem, 3vw, 1.9rem);
+  line-height: 1.4;
+  font-weight: 800;
+  direction: auto;
+}
+
+.dimmed-card {
+  opacity: .9;
+}
+
+.status-card {
+  margin-top: var(--space-5);
+}
+
+.batch-section {
+  margin-top: var(--space-5);
+}
+
+.stack-gap {
+  margin-top: var(--space-4);
+}
+
+.policy-shell {
+  max-width: 860px;
+}
+
+.policy-card {
+  padding: var(--space-6);
+}
+
+.policy-card p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--type-body);
+  line-height: 2;
+}
+
+.policy-card p + p {
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 720px) {
+  .management-page .shell {
+    width: min(100% - 22px, 1080px);
+  }
+
+  .management-topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .management-brand {
+    align-self: flex-start;
+  }
+
+  .management-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .management-link {
+    width: 100%;
+  }
+
+  .management-page .sources {
+    grid-template-columns: 1fr;
+  }
+
+  .management-page .hero,
+  .management-page .card,
+  .policy-card {
+    padding: var(--space-5);
+  }
+}
+
+@media (max-width: 420px) {
+  .management-page .shell {
+    width: min(100% - 16px, 1080px);
+  }
+
+  .management-links {
+    grid-template-columns: 1fr;
+  }
+
+  .management-page .hero,
+  .management-page .card,
+  .policy-card {
+    padding: var(--space-4);
+  }
+}
