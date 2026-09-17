@@ -30,6 +30,14 @@ const recentQuestionsEl = document.querySelector("#recent-questions");
 let lastResponse = null;
 let lastQuestion = "";
 
+function prefersReducedMotion() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
+}
+
+function scrollBehavior() {
+  return prefersReducedMotion() ? "auto" : "smooth";
+}
+
 function setLoading(value) {
   loading?.classList.toggle("hidden", !value);
   if (askButton) askButton.disabled = value;
@@ -144,6 +152,7 @@ function appendInlineText(parent, text) {
     if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
       const code = document.createElement("code");
       code.textContent = part.slice(1, -1);
+      code.dir = "ltr";
       parent.append(code);
       continue;
     }
@@ -189,6 +198,7 @@ function renderAnswerText(text) {
       flushList();
       const tag = heading[1].length <= 2 ? "h3" : "h4";
       const el = document.createElement(tag);
+      el.dir = "auto";
       appendInlineText(el, heading[2]);
       answerEl.append(el);
       continue;
@@ -198,6 +208,7 @@ function renderAnswerText(text) {
     if (bullet) {
       const list = ensureList("ul");
       const item = document.createElement("li");
+      item.dir = "auto";
       appendInlineText(item, bullet[1]);
       list.append(item);
       continue;
@@ -207,6 +218,7 @@ function renderAnswerText(text) {
     if (numbered) {
       const list = ensureList("ol");
       const item = document.createElement("li");
+      item.dir = "auto";
       appendInlineText(item, numbered[1]);
       list.append(item);
       continue;
@@ -214,6 +226,7 @@ function renderAnswerText(text) {
 
     flushList();
     const paragraph = document.createElement("p");
+    paragraph.dir = "auto";
     appendInlineText(paragraph, line);
     answerEl.append(paragraph);
   }
@@ -250,6 +263,7 @@ function renderSources(sources = [], evidenceStatus = "unknown") {
   sources.forEach((source, index) => {
     const card = document.createElement("article");
     card.className = "source";
+    card.setAttribute("aria-label", `منبع ${(index + 1).toLocaleString("fa-IR")}`);
 
     const indexLabel = document.createElement("span");
     indexLabel.className = "source-index";
@@ -257,6 +271,7 @@ function renderSources(sources = [], evidenceStatus = "unknown") {
 
     const title = document.createElement("p");
     title.className = "source-title";
+    title.dir = "auto";
     title.textContent = source.title || source.source_id || "منبع";
 
     const meta = document.createElement("div");
@@ -269,6 +284,7 @@ function renderSources(sources = [], evidenceStatus = "unknown") {
 
     for (const value of values) {
       const item = document.createElement("span");
+      item.dir = "auto";
       item.textContent = value;
       meta.append(item);
     }
@@ -318,7 +334,8 @@ function renderResponse(data, askedQuestion) {
   if (answerSection) {
     answerSection.dataset.state = status;
     answerSection.classList.remove("hidden");
-    answerSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    answerSection.focus({ preventScroll: true });
+    answerSection.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 }
 
@@ -379,7 +396,9 @@ function renderQuestionList(root, items) {
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.question = item;
+    button.dir = "auto";
     button.textContent = item;
+    button.setAttribute("aria-label", `سؤال پیشنهادی: ${item}`);
     root.append(button);
   }
 }
@@ -433,7 +452,7 @@ document.addEventListener("click", (event) => {
   if (question) {
     question.value = q.trim();
     question.focus();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: scrollBehavior() });
   }
 });
 
@@ -450,7 +469,7 @@ copyButton?.addEventListener("click", async () => {
   setTimeout(() => {
     if (copyButton) copyButton.textContent = "کپی پاسخ";
     if (copyStatus) copyStatus.textContent = "";
-  }, 1800);
+  }, 2200);
 });
 
 feedback?.addEventListener("click", async (event) => {
