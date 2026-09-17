@@ -21,10 +21,10 @@
       </a>
 
       <nav class="main-nav" aria-label="ناوبری اصلی">
-        <a class="active" href="#ask">صفحه اصلی</a>
         <a href="#topics">حوزه‌های دانش</a>
+        <a href="#questions">سؤال‌ها</a>
         <a href="#books">کتاب‌ها</a>
-        <a href="#about">درباره ما</a>
+        <a href="#trust">اعتبار پاسخ</a>
       </nav>
 
       <a class="admin-link" href="/admin">⚙ پنل مدیریت</a>
@@ -113,6 +113,48 @@
       </div>
     </section>
 
+    <section class="discover-section" id="questions" aria-label="سؤال‌های پیشنهادی">
+      <div class="section-heading">
+        <div>
+          <h2>اگر نمی‌دونی از کجا شروع کنی</h2>
+          <p>یکی از سؤال‌های پرتکرار یا نمونه سؤال‌های عمومی اخیر را انتخاب کن.</p>
+        </div>
+      </div>
+
+      <div class="questions-grid">
+        <article class="question-panel">
+          <div class="panel-head"><div><span class="panel-icon hot">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p></div></div></div>
+          <div id="frequent-questions" class="question-list">
+            <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
+            <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
+            <button type="button" data-question="چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟">چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟</button>
+            <button type="button" data-question="Reflection چه فرقی با Planning دارد؟">Reflection چه فرقی با Planning دارد؟</button>
+          </div>
+        </article>
+
+        <article class="question-panel">
+          <div class="panel-head"><div><span class="panel-icon recent">◷</span><div><h3>آخرین سؤال‌ها</h3><p>نمونه سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p></div></div></div>
+          <div id="recent-questions" class="question-list">
+            <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
+            <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
+            <button type="button" data-question="چطور Hallucination را کمتر کنیم؟">چطور Hallucination را کمتر کنیم؟</button>
+            <button type="button" data-question="اولین قدم برای ساخت Agent چیست؟">اولین قدم برای ساخت Agent چیست؟</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="trust" class="trust-strip">
+      <div><h2>چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2><p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p></div>
+      <div class="trust-badges"><span>✓ مستند</span><span>! مدرک ناکافی</span><span>≠ اختلاف منابع</span></div>
+    </section>
+
+    <section class="stats-strip" aria-label="وضعیت کتابخانه">
+      <div class="stat-item"><span class="stat-icon">▤</span><div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div></div>
+      <div class="stat-item"><span class="stat-icon">▰</span><div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div></div>
+      <div class="stat-item"><span class="stat-icon">□</span><div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div></div>
+    </section>
+
     <section class="books-section" id="books">
       <div class="books-head">
         <div>
@@ -143,39 +185,6 @@
           <li><div class="book-title-row"><strong>Building AI-Powered Products</strong><span class="book-meta">O’Reilly · 2025</span></div><span class="book-why">دید Product Management برای Strategy، Metrics و Lifecycle محصولات مبتنی بر AI.</span></li>
         </ul>
       </div>
-    </section>
-
-    <section class="questions-grid" aria-label="سؤال‌های پیشنهادی">
-      <article class="question-panel">
-        <div class="panel-head"><div><span class="panel-icon hot">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر پرسیده شده‌اند</p></div></div></div>
-        <div id="frequent-questions" class="question-list">
-          <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
-          <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
-          <button type="button" data-question="چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟">چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟</button>
-          <button type="button" data-question="Reflection چه فرقی با Planning دارد؟">Reflection چه فرقی با Planning دارد؟</button>
-        </div>
-      </article>
-
-      <article class="question-panel">
-        <div class="panel-head"><div><span class="panel-icon recent">◷</span><div><h3>آخرین سؤال‌ها</h3><p>نمونه سؤال‌های عمومی اخیر؛ سؤال یکتای کاربران منتشر نمی‌شود</p></div></div></div>
-        <div id="recent-questions" class="question-list">
-          <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
-          <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
-          <button type="button" data-question="چطور Hallucination را کمتر کنیم؟">چطور Hallucination را کمتر کنیم؟</button>
-          <button type="button" data-question="اولین قدم برای ساخت Agent چیست؟">اولین قدم برای ساخت Agent چیست؟</button>
-        </div>
-      </article>
-    </section>
-
-    <section class="stats-strip" aria-label="وضعیت کتابخانه">
-      <div class="stat-item"><span class="stat-icon">▤</span><div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div></div>
-      <div class="stat-item"><span class="stat-icon">▰</span><div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div></div>
-      <div class="stat-item"><span class="stat-icon">□</span><div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div></div>
-    </section>
-
-    <section id="about" class="trust-strip">
-      <div><h2>چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2><p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p></div>
-      <div class="trust-badges"><span>✓ مستند</span><span>! مدرک ناکافی</span><span>≠ اختلاف منابع</span></div>
     </section>
   </main>
 
