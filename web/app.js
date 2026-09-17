@@ -9,9 +9,11 @@ const answerSection = document.querySelector("#answer-section");
 const answerEl = document.querySelector("#answer");
 const answeredQuestion = document.querySelector("#answered-question");
 const badges = document.querySelector("#badges");
+const evidenceSummaryEl = document.querySelector("#evidence-summary");
 const sourcesEl = document.querySelector("#sources");
 const sourceCount = document.querySelector("#source-count");
 const copyButton = document.querySelector("#copy-button");
+const copyStatus = document.querySelector("#copy-status");
 const feedback = document.querySelector("#feedback");
 const feedbackStatus = document.querySelector("#feedback-status");
 const updatedEl = document.querySelector("#stat-updated");
@@ -48,12 +50,22 @@ function badge(label, tone = "neutral") {
 
 function evidenceLabel(status) {
   const map = {
-    supported: { label: "مستند", tone: "success" },
-    partial: { label: "نیمه‌مستند", tone: "warning" },
-    no_evidence: { label: "مدرک ناکافی", tone: "warning" },
-    conflict: { label: "اختلاف منابع", tone: "danger" }
+    supported: { label: "مستند", tone: "success", icon: "✓" },
+    partial: { label: "نیمه‌مستند", tone: "warning", icon: "◐" },
+    no_evidence: { label: "مدرک ناکافی", tone: "warning", icon: "!" },
+    conflict: { label: "اختلاف منابع", tone: "danger", icon: "≠" }
   };
-  return map[status] || { label: "نیاز به بررسی", tone: "neutral" };
+  return map[status] || { label: "نیاز به بررسی", tone: "neutral", icon: "?" };
+}
+
+function evidenceSummary(status) {
+  const map = {
+    supported: "برای نکات اصلی این پاسخ، شواهد کافی در منابع فعال کتابخانه پیدا شده است.",
+    partial: "بخشی از پاسخ با شواهد مستقیم پشتیبانی می‌شود؛ بعضی بخش‌ها نیاز به بررسی بیشتری دارند.",
+    no_evidence: "برای ارائه یک پاسخ قطعی، شواهد کافی در منابع فعال کتابخانه پیدا نشده است.",
+    conflict: "منابع فعال در این موضوع با هم اختلاف دارند؛ پاسخ باید با توجه به این اختلاف خوانده شود."
+  };
+  return map[status] || "وضعیت شواهد این پاسخ نیاز به بررسی دارد.";
 }
 
 function confidenceLabel(confidence) {
@@ -62,6 +74,96 @@ function confidenceLabel(confidence) {
   if (level === "medium") return "قدرت شواهد: متوسط";
   if (level === "low") return "قدرت شواهد: کم";
   return "قدرت شواهد: ثبت نشده";
+}
+
+function appendInlineText(parent, text) {
+  const parts = String(text || "").split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter(Boolean);
+  for (const part of parts) {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      const strong = document.createElement("strong");
+      strong.textContent = part.slice(2, -2);
+      parent.append(strong);
+      continue;
+    }
+
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      const code = document.createElement("code");
+      code.textContent = part.slice(1, -1);
+      parent.append(code);
+      continue;
+    }
+
+    parent.append(document.createTextNode(part));
+  }
+}
+
+function renderAnswerText(text) {
+  if (!answerEl) return;
+  answerEl.replaceChildren();
+
+  const normalized = String(text || "").replace(/\r/g, "").trim();
+  if (!normalized) return;
+
+  const lines = normalized.split("\n");
+  let currentList = null;
+  let currentListType = null;
+
+  function flushList() {
+    if (currentList) answerEl.append(currentList);
+    currentList = null;
+    currentListType = null;
+  }
+
+  function ensureList(type) {
+    if (currentList && currentListType === type) return currentList;
+    flushList();
+    currentListType = type;
+    currentList = document.createElement(type);
+    return currentList;
+  }
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      flushList();
+      const tag = heading[1].length <= 2 ? "h3" : "h4";
+      const el = document.createElement(tag);
+      appendInlineText(el, heading[2]);
+      answerEl.append(el);
+      continue;
+    }
+
+    const bullet = line.match(/^[-*•]\s+(.+)$/);
+    if (bullet) {
+      const list = ensureList("ul");
+      const item = document.createElement("li");
+      appendInlineText(item, bullet[1]);
+      list.append(item);
+      continue;
+    }
+
+    const numbered = line.match(/^(?:\d+|[۰-۹]+)[.)]\s+(.+)$/);
+    if (numbered) {
+      const list = ensureList("ol");
+      const item = document.createElement("li");
+      appendInlineText(item, numbered[1]);
+      list.append(item);
+      continue;
+    }
+
+    flushList();
+    const paragraph = document.createElement("p");
+    appendInlineText(paragraph, line);
+    answerEl.append(paragraph);
+  }
+
+  flushList();
 }
 
 function renderSources(sources = []) {
@@ -77,9 +179,13 @@ function renderSources(sources = []) {
     return;
   }
 
-  for (const source of sources) {
+  sources.forEach((source, index) => {
     const card = document.createElement("article");
     card.className = "source";
+
+    const indexLabel = document.createElement("span");
+    indexLabel.className = "source-index";
+    indexLabel.textContent = `منبع ${(index + 1).toLocaleString("fa-IR")}`;
 
     const title = document.createElement("p");
     title.className = "source-title";
@@ -90,9 +196,7 @@ function renderSources(sources = []) {
 
     const values = [
       source.chapter ? `فصل: ${source.chapter}` : null,
-      source.section ? `بخش: ${source.section}` : null,
-      source.version_id ? `نسخه: ${source.version_id}` : null,
-      source.grade ? `Grade: ${source.grade}` : null
+      source.section ? `بخش: ${source.section}` : null
     ].filter(Boolean);
 
     for (const value of values) {
@@ -101,27 +205,46 @@ function renderSources(sources = []) {
       meta.append(item);
     }
 
-    card.append(title, meta);
+    card.append(indexLabel, title);
+    if (values.length > 0) card.append(meta);
     sourcesEl.append(card);
+  });
+}
+
+function resetFeedback() {
+  if (feedbackStatus) feedbackStatus.textContent = "";
+  if (!feedback) return;
+  for (const button of feedback.querySelectorAll("button[data-helpful]")) {
+    button.disabled = false;
+    button.classList.remove("is-selected");
+    button.setAttribute("aria-pressed", "false");
   }
 }
 
 function renderResponse(data, askedQuestion) {
   lastResponse = data;
-  if (answerEl) answerEl.textContent = data.answer || "";
+  renderAnswerText(data.answer || "");
   if (answeredQuestion) answeredQuestion.textContent = askedQuestion || "";
+
   if (badges) {
     badges.replaceChildren();
     const evidence = evidenceLabel(data.evidence_status);
     badges.append(
-      badge(`✓ ${evidence.label}`, evidence.tone),
-      badge(confidenceLabel(data.confidence), "info"),
-      badge(`${(data.sources || []).length.toLocaleString("fa-IR")} منبع`, "neutral")
+      badge(`${evidence.icon} ${evidence.label}`, evidence.tone),
+      badge(confidenceLabel(data.confidence), "info")
     );
   }
 
+  if (evidenceSummaryEl) {
+    evidenceSummaryEl.textContent = evidenceSummary(data.evidence_status);
+    evidenceSummaryEl.dataset.status = data.evidence_status || "unknown";
+  }
+
   renderSources(data.sources || []);
-  if (feedbackStatus) feedbackStatus.textContent = "";
+  resetFeedback();
+  if (copyStatus) copyStatus.textContent = "";
+  if (copyButton) copyButton.textContent = "کپی پاسخ";
+
   answerSection?.classList.remove("hidden");
   answerSection?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -218,16 +341,28 @@ document.addEventListener("click", (event) => {
 
 copyButton?.addEventListener("click", async () => {
   if (!lastResponse?.answer) return;
-  await navigator.clipboard.writeText(lastResponse.answer);
-  copyButton.textContent = "کپی شد";
-  setTimeout(() => { copyButton.textContent = "کپی پاسخ"; }, 1200);
+  try {
+    await navigator.clipboard.writeText(lastResponse.answer);
+    copyButton.textContent = "کپی شد";
+    if (copyStatus) copyStatus.textContent = "پاسخ در کلیپ‌بورد ذخیره شد.";
+  } catch {
+    if (copyStatus) copyStatus.textContent = "کپی خودکار انجام نشد؛ متن را دستی انتخاب کن.";
+  }
+
+  setTimeout(() => {
+    if (copyButton) copyButton.textContent = "کپی پاسخ";
+    if (copyStatus) copyStatus.textContent = "";
+  }, 1800);
 });
 
 feedback?.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-helpful]");
   if (!button || !lastResponse?.request_id) return;
 
-  if (feedbackStatus) feedbackStatus.textContent = "در حال ثبت…";
+  const feedbackButtons = [...feedback.querySelectorAll("button[data-helpful]")];
+  for (const item of feedbackButtons) item.disabled = true;
+  if (feedbackStatus) feedbackStatus.textContent = "در حال ثبت بازخورد…";
+
   try {
     const response = await fetch(`${API_BASE}/api/v1/feedback`, {
       method: "POST",
@@ -240,9 +375,12 @@ feedback?.addEventListener("click", async (event) => {
     });
 
     if (!response.ok) throw new Error("feedback failed");
-    if (feedbackStatus) feedbackStatus.textContent = "ممنون؛ بازخورد ثبت شد.";
+    button.classList.add("is-selected");
+    button.setAttribute("aria-pressed", "true");
+    if (feedbackStatus) feedbackStatus.textContent = "ممنون؛ بازخوردت ثبت شد.";
   } catch {
-    if (feedbackStatus) feedbackStatus.textContent = "ثبت بازخورد ناموفق بود.";
+    for (const item of feedbackButtons) item.disabled = false;
+    if (feedbackStatus) feedbackStatus.textContent = "ثبت بازخورد ناموفق بود؛ دوباره تلاش کن.";
   }
 });
 
