@@ -29,33 +29,50 @@ jobs:
 
       - name: Deploy website
         run: |
-          npx wrangler pages deploy web             --project-name "$PAGES_PROJECT"             --branch main             --commit-hash "$GITHUB_SHA"             --commit-message "GitHub Actions deploy"
+          npx wrangler pages deploy web \
+            --project-name "$PAGES_PROJECT" \
+            --branch main \
+            --commit-hash "$GITHUB_SHA" \
+            --commit-message "GitHub Actions deploy"
 
       - name: Verify website
         shell: bash
         run: |
           node --input-type=module <<'NODE'
           const url = "https://ai-engineering-knowledge-agent-web.pages.dev";
+          const requiredMarkers = [
+            "AI.Knowledge",
+            "id=\"ask-form\"",
+            "id=\"frequent-questions\"",
+            "id=\"recent-questions\""
+          ];
           let last = null;
 
-          for (let attempt = 1; attempt <= 12; attempt++) {
+          for (let attempt = 1; attempt <= 4; attempt++) {
             try {
-              const res = await fetch(url);
+              const res = await fetch(url, { cache: "no-store" });
               const html = await res.text();
-              if (res.ok && html.includes("AI Engineering Knowledge Agent")) {
+              const missing = requiredMarkers.filter(marker => !html.includes(marker));
+
+              if (res.ok && missing.length === 0) {
                 console.log("Website OK:", url, "attempt", attempt);
                 process.exit(0);
               }
-              last = "HTTP " + res.status;
+
+              last = res.ok
+                ? "missing markers: " + missing.join(", ")
+                : "HTTP " + res.status;
             } catch (error) {
               last = String(error);
             }
 
             console.log("Waiting for Pages propagation:", attempt, last);
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            if (attempt < 4) {
+              await new Promise(resolve => setTimeout(resolve, 3000));
+            }
           }
 
-          throw new Error("website verification failed after retries: " + last);
+          throw new Error("website verification failed: " + last);
           NODE
 
       - name: Verify mobile admin and ingestion tools
