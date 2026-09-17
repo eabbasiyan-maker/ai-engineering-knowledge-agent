@@ -183,31 +183,27 @@ function citedSourceLabels(answer: string) {
   return labels;
 }
 
-function parseModelJson(raw: unknown) {
+function modelText(raw: unknown) {
   const obj = raw as any;
   const choiceContent = obj?.choices?.[0]?.message?.content;
 
-  let text = "";
-
-  if (typeof raw === "string") {
-    text = raw;
-  } else if (typeof choiceContent === "string") {
-    text = choiceContent;
-  } else if (Array.isArray(choiceContent)) {
-    text = choiceContent.map((part: any) => part?.text ?? "").join("");
-  } else if (typeof obj?.response === "string") {
-    text = obj.response;
-  } else if (obj?.response && typeof obj.response === "object") {
-    text = JSON.stringify(obj.response);
-  } else if (typeof obj?.result?.response === "string") {
-    text = obj.result.response;
-  } else if (obj?.result?.response && typeof obj.result.response === "object") {
-    text = JSON.stringify(obj.result.response);
-  } else if (obj?.answer) {
-    text = JSON.stringify(obj);
+  if (typeof raw === "string") return raw;
+  if (typeof choiceContent === "string") return choiceContent;
+  if (Array.isArray(choiceContent)) {
+    return choiceContent.map((part: any) => part?.text ?? "").join("");
   }
+  if (typeof obj?.response === "string") return obj.response;
+  if (obj?.response && typeof obj.response === "object") return JSON.stringify(obj.response);
+  if (typeof obj?.result?.response === "string") return obj.result.response;
+  if (obj?.result?.response && typeof obj.result.response === "object") {
+    return JSON.stringify(obj.result.response);
+  }
+  if (obj?.answer) return JSON.stringify(obj);
+  return "";
+}
 
-  const cleaned = text
+function parseModelJson(raw: unknown) {
+  const cleaned = modelText(raw)
     .trim()
     .replace(/^\`\`\`json\s*/i, "")
     .replace(/^\`\`\`\s*/i, "")
@@ -234,6 +230,80 @@ function parseModelJson(raw: unknown) {
   }
 }
 
+function requestsConflictReview(question: string) {
+  return /\b(conflict|conflicting|disagree|disagreement|different perspectives|different views|opposing|both perspectives)\b/i.test(question) ||
+    /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(question);
+}
+
+function mergeRawMatches(groups: any[][]) {
+  const merged = new Map<string, any>();
+
+  for (const group of groups) {
+    for (const match of group) {
+      const key = String(match.chunk_id ?? "");
+      if (!key) continue;
+      const existing = merged.get(key);
+      if (!existing || Number(match.score ?? 0) > Number(existing.score ?? 0)) {
+        merged.set(key, match);
+      }
+    }
+  }
+
+  return Array.from(merged.values()).sort(
+    (a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)
+  );
+}
+
+async function expandConflictQueries(env: Env, question: string) {
+  if (!requestsConflictReview(question)) return [] as string[];
+
+  const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
+
+  try {
+    const generated = await env.AI.run(
+      model as any,
+      {
+        messages: [
+          {
+            role: "system",
+            content: `You generate retrieval queries only. Do not answer the question.\nGiven a question that asks whether approved sources disagree, produce two short semantic-search queries:\n1) one query seeking evidence for the first/affirmative position,\n2) one query seeking evidence for the contrasting/opposing position.\nPreserve the user's technical concepts and named terms. Do not add unrelated facts.\nReturn JSON only: {"support_query":"string","challenge_query":"string"}`
+          },
+          { role: "user", content: question }
+        ],
+        max_tokens: 160,
+        temperature: 0,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            type: "object",
+            properties: {
+              support_query: { type: "string" },
+              challenge_query: { type: "string" }
+            },
+            required: ["support_query", "challenge_query"]
+          }
+        }
+      } as any
+    ) as any;
+
+    const cleaned = modelText(generated)
+      .trim()
+      .replace(/^\`\`\`json\s*/i, "")
+      .replace(/^\`\`\`\s*/i, "")
+      .replace(/\`\`\`$/i, "")
+      .trim();
+
+    const parsed = JSON.parse(cleaned);
+    const variants = [parsed.support_query, parsed.challenge_query]
+      .map((value) => String(value ?? "").trim())
+      .filter((value) => value.length >= 8 && value !== question);
+
+    return Array.from(new Set(variants)).slice(0, 2);
+  } catch {
+    return [] as string[];
+  }
+}
+
 export async function answerQuestion(env: Env, input: AskRequest) {
   const question = String(input.question ?? "").trim();
   const channel: AskChannel = input.channel ?? "api";
@@ -242,7 +312,12 @@ export async function answerQuestion(env: Env, input: AskRequest) {
   const requestedTopK = clamp(Number(input.top_k ?? 8), 3, 12);
   const minScore = clamp(Number(env.MIN_RETRIEVAL_SCORE ?? "0.40"), 0, 1);
 
-  const rawMatches = await searchKnowledge(env, question, requestedTopK);
+  const conflictQueries = await expandConflictQueries(env, question);
+  const retrievalQueries = [question, ...conflictQueries];
+  const retrievalGroups = await Promise.all(
+    retrievalQueries.map((query) => searchKnowledge(env, query, requestedTopK))
+  );
+  const rawMatches = mergeRawMatches(retrievalGroups);
   const ranked = rankMatches(rawMatches, minScore);
 
   if (!ranked.length) {
@@ -256,7 +331,8 @@ export async function answerQuestion(env: Env, input: AskRequest) {
       retrieval: {
         retrieved: rawMatches.length,
         eligible: 0,
-        min_score: minScore
+        min_score: minScore,
+        query_count: retrievalQueries.length
       }
     };
   }
@@ -282,11 +358,7 @@ If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
-  const user = `Question:
-${question}
-
-Approved evidence:
-${context}`;
+  const user = `Question:\n${question}\n\nApproved evidence:\n${context}`;
 
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
   const generated = await env.AI.run(
@@ -347,6 +419,7 @@ ${context}`;
         eligible: ranked.length,
         used: chosen.length,
         min_score: minScore,
+        query_count: retrievalQueries.length,
         generation_model: model
       }
     };
@@ -392,6 +465,7 @@ ${context}`;
       eligible: ranked.length,
       used: chosen.length,
       min_score: minScore,
+      query_count: retrievalQueries.length,
       generation_model: model
     }
   };
