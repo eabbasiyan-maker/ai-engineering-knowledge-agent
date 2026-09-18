@@ -1068,7 +1068,7 @@ ${outputContract}`;
     ? {
         answer: modelText(generated)
           .trim()
-          .replace(/^\`\`\`(?:text|markdown)?\\s*/i, "")
+          .replace(/^\`\`\`(?:text|markdown)?\s*/i, "")
           .replace(/\`\`\`$/i, "")
           .trim(),
         evidence_status: initialEvidenceStatus,
