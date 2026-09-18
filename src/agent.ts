@@ -349,6 +349,13 @@ function dedupeRepeatedSentences(answer: string) {
     .trim();
 }
 
+function cleanAnswerArtifacts(answer: string) {
+  return answer
+    .replace(/\s*evidence[_ ]status\s*[:=]\s*(?:supported|partial|no_evidence|conflict)\s*$/i, "")
+    .replace(/\s*conflict\s*[:=]\s*(?:true|false)\s*$/i, "")
+    .trim();
+}
+
 function requestsConflictReview(question: string) {
   return /\b(conflict|conflicting|disagree|disagreement|different perspectives|different views|opposing|both perspectives)\b/i.test(question) ||
     /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(question);
@@ -619,8 +626,10 @@ Return JSON only with exactly:
     retrieval_score: Number(m.score.toFixed(4))
   }));
 
-  const cleanedAnswer = dedupeRepeatedSentences(
-    parsed.answer || noEvidenceAnswer(question)
+  const cleanedAnswer = cleanAnswerArtifacts(
+    dedupeRepeatedSentences(
+      parsed.answer || noEvidenceAnswer(question)
+    )
   );
 
   let groundedAnswer = ensureInlineCitation(
