@@ -1,5 +1,5 @@
 import type { Env } from "./env";
-import { searchKnowledge } from "./search";
+import { searchKnowledge, searchKnowledgeLexical } from "./search";
 
 export type AskChannel = "web" | "telegram" | "gpt" | "api";
 
@@ -14,6 +14,9 @@ type EvidenceStatus = "supported" | "partial" | "no_evidence" | "conflict";
 type RankedMatch = {
   score: number;
   rank_score: number;
+  fusion_score?: number;
+  need_ids?: string[];
+  retrieval_kinds?: string[];
   chunk_id: string;
   source_id: string;
   version_id?: string;
@@ -30,6 +33,34 @@ type ParsedModelAnswer = {
   evidence_status: EvidenceStatus | null;
   conflict: boolean;
   conflict_summary: string | null;
+};
+
+type InformationNeed = {
+  id: string;
+  label: string;
+  query: string;
+  required: boolean;
+  aliases: string[];
+};
+
+type RetrievalPlan = {
+  need_id: string;
+  query: string;
+  kind: "global" | "need" | "conflict";
+};
+
+type RetrievalRun = {
+  plan: RetrievalPlan;
+  kind: "semantic" | "lexical";
+  matches: any[];
+};
+
+type CoverageItem = {
+  id: string;
+  label: string;
+  covered: boolean;
+  evidence_count: number;
+  best_score: number;
 };
 
 const gradeAuthority: Record<string, number> = {
@@ -54,24 +85,31 @@ function noEvidenceAnswer(question: string) {
 }
 
 function rankMatches(matches: any[], minScore: number): RankedMatch[] {
-  return matches
-    .filter((m) => Number(m.score ?? 0) >= minScore)
+  const eligible = matches.filter((m) => Number(m.score ?? 0) >= minScore);
+  const maxFusion = Math.max(
+    0,
+    ...eligible.map((m) => Number(m.fusion_score ?? 0))
+  );
+
+  return eligible
     .map((m) => {
-      const vectorScore = Number(m.score ?? 0);
+      const retrievalScore = Number(m.score ?? 0);
       const gradeWeight = gradeAuthority[String(m.grade ?? "")] ?? 0.5;
       const referenceScore = Number(m.reference_score ?? 50) / 100;
       const authority = gradeWeight * 0.6 + referenceScore * 0.4;
+      const fusion = maxFusion > 0
+        ? Number(m.fusion_score ?? 0) / maxFusion
+        : 0;
 
       return {
         ...m,
-        score: vectorScore,
+        score: retrievalScore,
         reference_score: Number(m.reference_score ?? 0),
-        rank_score: vectorScore * 0.88 + authority * 0.12
+        rank_score: retrievalScore * 0.62 + fusion * 0.26 + authority * 0.12
       } as RankedMatch;
     })
     .sort((a, b) => b.rank_score - a.rank_score);
 }
-
 function chunkOrdinal(chunkId: string) {
   const match = chunkId.match(/C(\d+)$/);
   return match ? Number(match[1]) : null;
@@ -144,16 +182,22 @@ function isNearDuplicateEvidence(candidate: RankedMatch, chosen: RankedMatch[]) 
   });
 }
 
-function buildContext(matches: RankedMatch[], maxChars = 16000, maxChunks = 6) {
+function buildCoverageContext(
+  matches: RankedMatch[],
+  needs: InformationNeed[],
+  maxChars = 20000
+) {
   const chosen: RankedMatch[] = [];
+  const requiredNeeds = needs.filter((need) => need.required);
+  const operationalMaxChunks = Math.min(
+    12,
+    Math.max(6, requiredNeeds.length + 4)
+  );
   let used = 0;
-  const relevanceFloor = matches.length
-    ? Math.max(0.48, matches[0].score - 0.16)
-    : 0.48;
 
   const canChoose = (match: RankedMatch) => {
-    if (chosen.length >= maxChunks) return false;
-    if (chosen.length > 0 && match.score < relevanceFloor) return false;
+    if (chosen.length >= operationalMaxChunks) return false;
+    if (match.score < 0.5) return false;
 
     const text = String(match.text ?? "").trim();
     if (!text) return false;
@@ -173,35 +217,78 @@ function buildContext(matches: RankedMatch[], maxChars = 16000, maxChunks = 6) {
     return true;
   };
 
-  if (matches.length) canChoose(matches[0]);
-
-  // Prefer independent evidence before filling the context with more chunks
-  // from the top source. This is especially important for conflict review.
-  if (chosen.length && chosen.length < maxChunks) {
-    const topScore = chosen[0].score;
-    const diversityFloor = Math.max(0.45, topScore - 0.2);
-    const seenSources = new Set(chosen.map((m) => m.source_id));
-
-    for (const match of matches) {
-      if (chosen.length >= Math.min(maxChunks, 3)) break;
-      if (seenSources.has(match.source_id)) continue;
-      if (match.score < diversityFloor) continue;
-      if (canChoose(match)) seenSources.add(match.source_id);
-    }
+  // First pass: reserve coverage, not a fixed chunk count, for every required
+  // information need that has direct eligible evidence.
+  for (const need of requiredNeeds) {
+    const candidate = matches.find((match) =>
+      match.need_ids?.includes(need.id) &&
+      match.score >= 0.5 &&
+      !chosen.some((existing) => existing.chunk_id === match.chunk_id) &&
+      !isNearDuplicateEvidence(match, chosen)
+    );
+    if (candidate) canChoose(candidate);
   }
 
-  for (const match of matches) {
-    if (chosen.length >= maxChunks) break;
-    if (chosen.some((existing) => existing.chunk_id === match.chunk_id)) continue;
-    canChoose(match);
+  // Second pass: fill the remaining context by marginal value. New need
+  // coverage and source diversity beat redundant high-similarity chunks.
+  while (chosen.length < operationalMaxChunks) {
+    const coveredNeedIds = new Set(
+      chosen.flatMap((match) => match.need_ids ?? [])
+    );
+    const seenSources = new Set(chosen.map((match) => match.source_id));
+
+    const candidate = matches
+      .filter((match) =>
+        match.score >= 0.5 &&
+        !chosen.some((existing) => existing.chunk_id === match.chunk_id) &&
+        !isNearDuplicateEvidence(match, chosen)
+      )
+      .map((match) => {
+        const newNeeds = (match.need_ids ?? []).filter(
+          (needId) => needId !== "global" && !coveredNeedIds.has(needId)
+        ).length;
+        const sourceBonus = seenSources.has(match.source_id) ? 0 : 0.025;
+        const marginal = match.rank_score + newNeeds * 0.09 + sourceBonus;
+        return { match, marginal };
+      })
+      .sort((a, b) => b.marginal - a.marginal)[0]?.match;
+
+    if (!candidate || !canChoose(candidate)) break;
   }
 
+  const coverage: CoverageItem[] = requiredNeeds.map((need) => {
+    const supporting = chosen.filter((match) =>
+      match.need_ids?.includes(need.id)
+    );
+    return {
+      id: need.id,
+      label: need.label,
+      covered: supporting.length > 0,
+      evidence_count: supporting.length,
+      best_score: Number(
+        Math.max(0, ...supporting.map((match) => match.score)).toFixed(4)
+      )
+    };
+  });
+
+  const coveredCount = coverage.filter((item) => item.covered).length;
+  const coverageRatio = coverage.length
+    ? coveredCount / coverage.length
+    : chosen.length
+      ? 1
+      : 0;
+
+  const needById = new Map(needs.map((need) => [need.id, need.label]));
   const context = chosen.map((m, index) => {
     const label = `S${index + 1}`;
     const location = [m.chapter, m.section].filter(Boolean).join(" > ");
+    const supports = (m.need_ids ?? [])
+      .filter((needId) => needId !== "global")
+      .map((needId) => needById.get(needId) ?? needId);
 
     return [
       `[${label}]`,
+      `supports: ${supports.length ? supports.join(" | ") : "whole question"}`,
       `source_id: ${m.source_id}`,
       `title: ${m.title}`,
       `grade: ${m.grade}`,
@@ -214,9 +301,21 @@ function buildContext(matches: RankedMatch[], maxChars = 16000, maxChunks = 6) {
     ].join("\n");
   }).join("\n\n---\n\n");
 
-  return { chosen, context };
-}
+  const needSummary = requiredNeeds.length
+    ? requiredNeeds.map((need, index) => {
+        const item = coverage.find((entry) => entry.id === need.id);
+        return `N${index + 1}. ${need.label} — evidence: ${item?.covered ? "available" : "missing"}`;
+      }).join("\n")
+    : "N1. Whole question — evidence: " + (chosen.length ? "available" : "missing");
 
+  return {
+    chosen,
+    context,
+    coverage,
+    coverageRatio: Number(coverageRatio.toFixed(3)),
+    needSummary
+  };
+}
 function confidenceFor(matches: RankedMatch[], evidenceStatus: EvidenceStatus) {
   if (!matches.length || evidenceStatus === "no_evidence") {
     return {
@@ -409,61 +508,306 @@ function requestsConflictReview(question: string) {
     /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(question);
 }
 
-function mergeRawMatches(groups: any[][]) {
-  const merged = new Map<string, any>();
+const conceptRules = [
+  {
+    id: "quality",
+    label: "QC / evaluation",
+    pattern: /\b(qc|quality control|quality assurance|evaluation|evaluator|llm[- ]?as[- ]?judge|validation|verification|groundedness|faithfulness)\b/i,
+    faPattern: /(کنترل کیفیت|تضمین کیفیت|ارزیابی|ارزیاب|اعتبارسنجی|سنجش کیفیت|کیفیت پاسخ)/,
+    query: "LLM response evaluation quality control evaluator LLM-as-judge groundedness faithfulness correctness relevance completeness reliability",
+    aliases: ["qc", "quality", "evaluation", "ارزیابی", "کیفیت"]
+  },
+  {
+    id: "observability",
+    label: "Logging / observability",
+    pattern: /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i,
+    faPattern: /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/,
+    query: "LLM agent observability logging tracing telemetry request response model latency token usage errors retries tool execution request id correlation id production monitoring",
+    aliases: ["logging", "observability", "trace", "لاگ", "مانیتورینگ", "ردیابی"]
+  },
+  {
+    id: "cost",
+    label: "Cost / FinOps",
+    pattern: /\b(cost|finops|token usage|usage cost|budget)\b/i,
+    faPattern: /(هزینه|مصرف توکن|بودجه|فین.?آپ)/,
+    query: "LLM cost token usage inference cost budget FinOps optimization monitoring",
+    aliases: ["cost", "finops", "هزینه", "توکن"]
+  },
+  {
+    id: "security",
+    label: "Security / guardrails",
+    pattern: /\b(security|guardrail|prompt injection|jailbreak|authorization|authentication|safety)\b/i,
+    faPattern: /(امنیت|گاردریل|تزریق پرامپت|پرامپت اینجکشن|احراز هویت|مجوز|ایمنی)/,
+    query: "AI agent security guardrails prompt injection tool authorization safety access control",
+    aliases: ["security", "guardrail", "امنیت", "گاردریل"]
+  },
+  {
+    id: "retry",
+    label: "Retry / recovery",
+    pattern: /\b(retry|retries|recovery|failover|failure handling|backoff)\b/i,
+    faPattern: /(تلاش مجدد|بازیابی|خطا|شکست|فیل.?اور|ریترا)/,
+    query: "AI agent retry recovery failure handling backoff failover resilience errors",
+    aliases: ["retry", "recovery", "خطا", "بازیابی"]
+  },
+  {
+    id: "memory",
+    label: "Memory",
+    pattern: /\b(memory|long-term memory|short-term memory)\b/i,
+    faPattern: /(حافظه|مموری)/,
+    query: "AI agent memory short-term long-term episodic semantic conversation memory",
+    aliases: ["memory", "حافظه", "مموری"]
+  },
+  {
+    id: "planning",
+    label: "Planning",
+    pattern: /\b(planning|planner|plan)\b/i,
+    faPattern: /(برنامه.?ریزی|پلنینگ)/,
+    query: "AI agent planning planner task decomposition execution plan",
+    aliases: ["planning", "برنامه ریزی", "برنامه‌ریزی"]
+  },
+  {
+    id: "reflection",
+    label: "Reflection",
+    pattern: /\b(reflection|self-reflection|reflect)\b/i,
+    faPattern: /(رفلکشن|بازبینی|خود.?بازبینی)/,
+    query: "AI agent reflection self-reflection critique revise feedback",
+    aliases: ["reflection", "بازبینی", "رفلکشن"]
+  },
+  {
+    id: "rag",
+    label: "RAG / grounding",
+    pattern: /\b(rag|retrieval augmented generation|grounding|citation)\b/i,
+    faPattern: /(رگ|بازیابی افزوده|گراند|استناد|سایتیشن)/,
+    query: "RAG retrieval augmented generation grounding citation evidence knowledge",
+    aliases: ["rag", "grounding", "رگ", "استناد"]
+  },
+  {
+    id: "retrieval",
+    label: "Retrieval",
+    pattern: /\b(retrieval|rerank|reranker|vector search|semantic search|hybrid search)\b/i,
+    faPattern: /(بازیابی|ریتریوال|ری.?رنک|جست.?وجوی برداری|جست.?وجوی معنایی)/,
+    query: "retrieval reranking vector search semantic search hybrid search evidence selection",
+    aliases: ["retrieval", "rerank", "بازیابی"]
+  },
+  {
+    id: "tools",
+    label: "Tool use",
+    pattern: /\b(tool|tools|tool call|function calling)\b/i,
+    faPattern: /(ابزار|تول کال|فانکشن کال)/,
+    query: "AI agent tools tool calling function calling tool execution errors",
+    aliases: ["tool", "tools", "ابزار"]
+  },
+  {
+    id: "multi-agent",
+    label: "Multi-agent",
+    pattern: /\b(multi-agent|multi agent|agent-to-agent|a2a)\b/i,
+    faPattern: /(مولتی.?ایجنت|چند.?عاملی|چند ایجنت|عامل.?به.?عامل)/,
+    query: "multi-agent systems agent-to-agent A2A orchestration coordination handoff",
+    aliases: ["multi-agent", "a2a", "چند عاملی"]
+  },
+  {
+    id: "mcp",
+    label: "MCP",
+    pattern: /\b(mcp|model context protocol)\b/i,
+    faPattern: /(ام.?سی.?پی|پروتکل کانتکست مدل)/,
+    query: "Model Context Protocol MCP tools resources prompts agent integration",
+    aliases: ["mcp", "ام سی پی"]
+  },
+  {
+    id: "context",
+    label: "Context engineering",
+    pattern: /\b(context engineering|context window|context management|context)\b/i,
+    faPattern: /(کانتکست|زمینه|مهندسی زمینه|مدیریت زمینه)/,
+    query: "AI context engineering context management context window prompt context selection",
+    aliases: ["context", "کانتکست", "زمینه"]
+  }
+] as const;
 
-  for (const group of groups) {
-    for (const match of group) {
-      const key = String(match.chunk_id ?? "");
-      if (!key) continue;
-      const existing = merged.get(key);
-      if (!existing || Number(match.score ?? 0) > Number(existing.score ?? 0)) {
-        merged.set(key, match);
-      }
+function splitExplicitQuestionParts(question: string) {
+  const numbered = question.replace(
+    /(?:^|\s)(?:\d+|[۱-۹])[.)-]\s*/g,
+    "\n"
+  );
+  let parts = numbered
+    .split(/[؛;\n]+|،|,(?=\s)/)
+    .map((part) => part.trim())
+    .filter((part) => part.length >= 4);
+
+  if (parts.length <= 1) {
+    const conjunctive = question
+      .split(/\s+(?:و|and|&)\s+/i)
+      .map((part) => part.trim())
+      .filter((part) => part.length >= 3);
+
+    if (
+      conjunctive.length >= 3 &&
+      conjunctive.length <= 8 &&
+      conjunctive.every((part) => part.length <= 140)
+    ) {
+      parts = conjunctive;
     }
   }
 
-  return Array.from(merged.values()).sort(
-    (a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)
+  return Array.from(new Set(parts)).slice(0, 8);
+}
+
+function buildInformationNeeds(question: string): InformationNeed[] {
+  const needs: InformationNeed[] = [];
+  const matchedRules = conceptRules.filter((rule) =>
+    rule.pattern.test(question) || rule.faPattern.test(question)
   );
+
+  for (const rule of matchedRules) {
+    needs.push({
+      id: rule.id,
+      label: rule.label,
+      query: rule.query,
+      required: true,
+      aliases: [...rule.aliases]
+    });
+  }
+
+  const explicitParts = splitExplicitQuestionParts(question);
+  if (explicitParts.length >= 2) {
+    explicitParts.forEach((part, index) => {
+      const coveredByRule = matchedRules.some((rule) =>
+        rule.pattern.test(part) || rule.faPattern.test(part)
+      );
+      if (!coveredByRule) {
+        needs.push({
+          id: `part-${index + 1}`,
+          label: part.slice(0, 90),
+          query: part,
+          required: true,
+          aliases: []
+        });
+      }
+    });
+  }
+
+  if (!needs.length) {
+    return [{
+      id: "primary",
+      label: question.slice(0, 100),
+      query: question,
+      required: true,
+      aliases: []
+    }];
+  }
+
+  const deduped = new Map<string, InformationNeed>();
+  for (const need of needs) deduped.set(need.id, need);
+  return Array.from(deduped.values()).slice(0, 8);
 }
 
-function expandQualityQueries(question: string) {
-  const isQualityQuestion =
-    /\b(qc|quality control|quality assurance|evaluation|evaluator|llm[- ]?as[- ]?judge|validation|verification)\b/i.test(question) ||
-    /(کنترل کیفیت|تضمین کیفیت|ارزیابی|ارزیاب|اعتبارسنجی|سنجش کیفیت|کیفیت پاسخ)/.test(question);
+function buildRetrievalPlans(
+  question: string,
+  needs: InformationNeed[],
+  conflictQueries: string[]
+): RetrievalPlan[] {
+  const plans: RetrievalPlan[] = [{
+    need_id: "global",
+    query: question,
+    kind: "global"
+  }];
 
-  if (!isQualityQuestion) return [] as string[];
+  for (const need of needs) {
+    if (need.query.trim() && need.query.trim() !== question.trim()) {
+      plans.push({
+        need_id: need.id,
+        query: need.query,
+        kind: "need"
+      });
+    }
+  }
+
+  for (const query of conflictQueries) {
+    plans.push({
+      need_id: "global",
+      query,
+      kind: "conflict"
+    });
+  }
+
+  const unique = new Map<string, RetrievalPlan>();
+  for (const plan of plans) {
+    unique.set(`${plan.need_id}::${plan.query}`, plan);
+  }
+  return Array.from(unique.values());
+}
+
+async function runRetrievalPlan(
+  env: Env,
+  plan: RetrievalPlan,
+  topK: number
+): Promise<RetrievalRun[]> {
+  const [semantic, lexical] = await Promise.all([
+    searchKnowledge(env, plan.query, topK),
+    searchKnowledgeLexical(env, plan.query, topK)
+  ]);
 
   return [
-    `${question}\nLLM response evaluation quality control validation groundedness correctness relevance completeness agent evaluator judge reliability`
+    { plan, kind: "semantic", matches: semantic },
+    { plan, kind: "lexical", matches: lexical }
   ];
 }
 
-function expandObservabilityQueries(question: string) {
-  const isObservabilityQuestion =
-    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
-    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
+function fuseRetrievalResults(runs: RetrievalRun[]) {
+  const fused = new Map<string, {
+    match: any;
+    fusion_score: number;
+    need_ids: Set<string>;
+    retrieval_kinds: Set<string>;
+  }>();
+  const rrfK = 60;
 
-  if (!isObservabilityQuestion) return [] as string[];
+  for (const run of runs) {
+    const channelWeight = run.kind === "semantic" ? 1 : 0.9;
+    const planWeight = run.plan.kind === "need"
+      ? 1.15
+      : run.plan.kind === "conflict"
+        ? 1.1
+        : 1;
 
-  return [
-    `${question}\nLLM agent observability logging tracing telemetry audit request response prompt context model latency token usage cost errors retries evaluation production monitoring`,
-    `${question}\nproduction AI observability trace logs model input output retrieval sources tool execution latency tokens errors request id monitoring`
-  ];
+    run.matches.forEach((match, index) => {
+      const key = String(match.chunk_id ?? "");
+      if (!key) return;
+
+      const contribution =
+        channelWeight * planWeight / (rrfK + index + 1);
+      const existing = fused.get(key);
+
+      if (!existing) {
+        fused.set(key, {
+          match,
+          fusion_score: contribution,
+          need_ids: new Set([run.plan.need_id]),
+          retrieval_kinds: new Set([run.kind])
+        });
+        return;
+      }
+
+      existing.fusion_score += contribution;
+      existing.need_ids.add(run.plan.need_id);
+      existing.retrieval_kinds.add(run.kind);
+
+      if (Number(match.score ?? 0) > Number(existing.match.score ?? 0)) {
+        existing.match = match;
+      }
+    });
+  }
+
+  return Array.from(fused.values())
+    .map((entry) => ({
+      ...entry.match,
+      fusion_score: entry.fusion_score,
+      need_ids: Array.from(entry.need_ids),
+      retrieval_kinds: Array.from(entry.retrieval_kinds)
+    }))
+    .sort((a, b) =>
+      Number(b.fusion_score ?? 0) - Number(a.fusion_score ?? 0)
+    );
 }
-
-function questionAsksQualityAndObservability(question: string) {
-  const quality =
-    /\b(qc|quality control|quality assurance|evaluation|evaluator|validation|verification)\b/i.test(question) ||
-    /(کنترل کیفیت|تضمین کیفیت|ارزیابی|اعتبارسنجی|کیفیت پاسخ)/.test(question);
-  const observability =
-    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
-    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
-
-  return quality && observability;
-}
-
 async function expandConflictQueries(env: Env, question: string) {
   if (!requestsConflictReview(question)) return [] as string[];
 
@@ -523,15 +867,14 @@ export async function answerQuestion(env: Env, input: AskRequest) {
   const minScore = clamp(Number(env.MIN_RETRIEVAL_SCORE ?? "0.40"), 0, 1);
 
   const conflictQueries = await expandConflictQueries(env, question);
-  const qualityQueries = expandQualityQueries(question);
-  const observabilityQueries = expandObservabilityQueries(question);
-  const retrievalQueries = Array.from(
-    new Set([question, ...qualityQueries, ...observabilityQueries, ...conflictQueries])
-  );
-  const retrievalGroups = await Promise.all(
-    retrievalQueries.map((query) => searchKnowledge(env, query, requestedTopK))
-  );
-  const rawMatches = mergeRawMatches(retrievalGroups);
+  const needs = buildInformationNeeds(question);
+  const retrievalPlans = buildRetrievalPlans(question, needs, conflictQueries);
+  const retrievalRuns = (
+    await Promise.all(
+      retrievalPlans.map((plan) => runRetrievalPlan(env, plan, requestedTopK))
+    )
+  ).flat();
+  const rawMatches = fuseRetrievalResults(retrievalRuns);
   const ranked = rankMatches(rawMatches, minScore);
 
   if (!ranked.length) {
@@ -546,14 +889,56 @@ export async function answerQuestion(env: Env, input: AskRequest) {
         retrieved: rawMatches.length,
         eligible: 0,
         min_score: minScore,
-        query_count: retrievalQueries.length
+        query_count: retrievalPlans.length,
+        search_runs: retrievalRuns.length,
+        need_count: needs.length,
+        coverage_ratio: 0,
+        coverage: needs.map((need) => ({
+          id: need.id,
+          label: need.label,
+          covered: false,
+          evidence_count: 0,
+          best_score: 0
+        }))
       }
     };
   }
 
-  const { chosen, context } = buildContext(ranked);
+  const {
+    chosen,
+    context,
+    coverage,
+    coverageRatio,
+    needSummary
+  } = buildCoverageContext(ranked, needs);
+
+  if (!chosen.length) {
+    return {
+      request_id: requestId,
+      channel,
+      answer: noEvidenceAnswer(question),
+      evidence_status: "no_evidence" as EvidenceStatus,
+      confidence: confidenceFor([], "no_evidence"),
+      sources: [],
+      retrieval: {
+        retrieved: rawMatches.length,
+        eligible: ranked.length,
+        used: 0,
+        min_score: minScore,
+        query_count: retrievalPlans.length,
+        need_count: needs.length,
+        coverage_ratio: 0,
+        coverage
+      }
+    };
+  }
+
   const initialEvidenceStatus: EvidenceStatus =
-    chosen.length >= 2 && chosen[0].score >= 0.52 ? "supported" : "partial";
+    coverage.length > 1 && coverageRatio < 1
+      ? "partial"
+      : chosen[0].score >= 0.52
+        ? "supported"
+        : "partial";
 
   const system = `You are the AI Engineering Knowledge Agent.
 Answer only from the supplied approved evidence. Do not use outside knowledge.
@@ -564,9 +949,9 @@ If evidence_status is conflict, the answer MUST explicitly cite at least two dis
 Answer the user's actual question directly; do not restate the question as the opening sentence.
 Select only evidence that directly helps answer the requested task. Ignore retrieved details that are merely about the same broad topic.
 Before drafting, identify every explicit part of the user's request. If the question asks for multiple things, cover every supported part separately; never answer only the first part.
-When a question asks about both response quality/evaluation and logging/observability, structure the answer into two distinct parts: (1) QC/evaluation and (2) logging/observability.
-Do not treat LLM-as-Judge and evaluator LLM as separate techniques; synthesize them as one family.
-For logging/observability, report only fields and practices actually supported by the supplied evidence. If one requested part lacks direct evidence, say so and use evidence_status="partial".
+The user's required information needs are listed before the evidence. Treat each listed need as a distinct requested part.
+Cover every need marked "evidence: available". If a need is marked "evidence: missing", state that the approved knowledge base does not provide enough direct evidence for that part and do not guess.
+Do not let a highly relevant source for one need crowd out or substitute for another requested need.
 For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets per major requested part when the evidence supports it.
 Match answer depth to the question.
 For broad, explanatory, comparative, or multi-part questions, normally use about 250-500 words when the evidence supports that depth.
@@ -584,10 +969,7 @@ If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
-  const multipartHint = questionAsksQualityAndObservability(question)
-    ? "\nThis question has two explicit parts: quality/evaluation and logging/observability. Cover both separately from the evidence."
-    : "";
-  const user = `Question:\n${question}${multipartHint}\n\nApproved evidence:\n${context}`;
+  const user = `Question:\n${question}\n\nRequired information needs:\n${needSummary}\n\nApproved evidence:\n${context}`;
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
 
   const generated = await env.AI.run(
@@ -697,7 +1079,7 @@ Return JSON only with exactly:
         eligible: ranked.length,
         used: chosen.length,
         min_score: minScore,
-        query_count: retrievalQueries.length,
+        query_count: retrievalPlans.length,
         generation_model: model
       }
     };
@@ -713,7 +1095,8 @@ Return JSON only with exactly:
     chapter: m.chapter ?? null,
     section: m.section ?? null,
     chunk_id: m.chunk_id,
-    retrieval_score: Number(m.score.toFixed(4))
+    retrieval_score: Number(m.score.toFixed(4)),
+    supports: (m.need_ids ?? []).filter((needId) => needId !== "global")
   }));
 
   const cleanedAnswer = cleanAnswerArtifacts(
@@ -765,7 +1148,11 @@ Return JSON only with exactly:
       eligible: ranked.length,
       used: chosen.length,
       min_score: minScore,
-      query_count: retrievalQueries.length,
+      query_count: retrievalPlans.length,
+      search_runs: retrievalRuns.length,
+      need_count: needs.length,
+      coverage_ratio: coverageRatio,
+      coverage,
       generation_model: model
     }
   };
