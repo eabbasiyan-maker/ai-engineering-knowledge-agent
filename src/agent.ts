@@ -77,21 +77,12 @@ function chunkOrdinal(chunkId: string) {
   return match ? Number(match[1]) : null;
 }
 
-function buildContext(matches: RankedMatch[], maxChars = 8000, maxChunks = 4) {
+function buildContext(matches: RankedMatch[], maxChars = 18000, maxChunks = 8) {
   const chosen: RankedMatch[] = [];
   let used = 0;
 
   const canChoose = (match: RankedMatch) => {
     if (chosen.length >= maxChunks) return false;
-
-    const ordinal = chunkOrdinal(match.chunk_id);
-    const isNearDuplicate = chosen.some((existing) => {
-      if (existing.source_id !== match.source_id) return false;
-      const existingOrdinal = chunkOrdinal(existing.chunk_id);
-      return ordinal !== null && existingOrdinal !== null &&
-        Math.abs(ordinal - existingOrdinal) <= 1;
-    });
-    if (isNearDuplicate) return false;
 
     const text = String(match.text ?? "").trim();
     if (!text) return false;
@@ -387,7 +378,10 @@ Distinguish what the evidence supports from inference. If evidence is incomplete
 If supplied sources materially disagree, set conflict=true and explain the disagreement.
 Use inline citations like [S1], [S2] for factual claims.
 If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
-Answer concisely in at most 180 words.
+Match answer depth to the question.
+For broad, explanatory, comparative, or multi-part questions, give a complete structured answer and normally use about 350-650 words when the evidence supports that depth.
+For a simple single-fact question, stay brief.
+Do not omit major supported subtopics merely to keep the answer short.
 Avoid repetition even when evidence chunks overlap.
 Do not expose long verbatim passages; synthesize.
 Respond in the language of the user's question.
@@ -409,14 +403,14 @@ Return JSON only with exactly:
         { role: "system", content: system },
         { role: "user", content: user }
       ],
-      max_tokens: 500,
+      max_tokens: 1400,
       temperature: 0.1,
       response_format: {
         type: "json_schema",
         json_schema: {
           type: "object",
           properties: {
-            answer: { type: "string", maxLength: 2200 },
+            answer: { type: "string", maxLength: 8000 },
             evidence_status: {
               type: "string",
               enum: ["supported", "partial", "no_evidence", "conflict"]
