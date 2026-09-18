@@ -39,7 +39,9 @@ jobs:
         shell: bash
         run: |
           node --input-type=module <<'NODE'
-          const url = "https://ai-engineering-knowledge-agent-web.pages.dev";
+          const base = "https://ai-engineering-knowledge-agent-web.pages.dev";
+          const cacheBust = encodeURIComponent(process.env.GITHUB_SHA || Date.now());
+          const url = base + "/?deploy=" + cacheBust;
           const requiredMarkers = [
             "AI.Knowledge",
             "id=\"ask-form\"",
@@ -47,8 +49,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.1\"",
-            "hero-ai-knowledge.webp?v=0.3.1"
+            "name=\"app-version\" content=\"0.3.2\"",
+            "hero-ai-knowledge.webp?v=0.3.2"
           ];
           let last = null;
 
@@ -95,8 +97,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.1\"",
-            "hero-ai-knowledge.webp?v=0.3.1",
+            "name=\"app-version\" content=\"0.3.2\"",
+            "hero-ai-knowledge.webp?v=0.3.2",
             "href=\"/answer.css\"",
             "href=\"/discovery.css\"",
             "href=\"/library.css\""
