@@ -77,15 +77,73 @@ function chunkOrdinal(chunkId: string) {
   return match ? Number(match[1]) : null;
 }
 
-function buildContext(matches: RankedMatch[], maxChars = 18000, maxChunks = 8) {
+function normalizeEvidenceText(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/\[s\d+\]/gi, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function evidenceTokens(text: string) {
+  return new Set(
+    normalizeEvidenceText(text)
+      .split(" ")
+      .filter((token) => token.length >= 3)
+  );
+}
+
+function tokenOverlap(a: string, b: string) {
+  const left = evidenceTokens(a);
+  const right = evidenceTokens(b);
+  if (!left.size || !right.size) return 0;
+
+  let shared = 0;
+  for (const token of left) {
+    if (right.has(token)) shared++;
+  }
+
+  return shared / Math.min(left.size, right.size);
+}
+
+function isNearDuplicateEvidence(candidate: RankedMatch, chosen: RankedMatch[]) {
+  const candidateOrdinal = chunkOrdinal(candidate.chunk_id);
+
+  return chosen.some((existing) => {
+    const overlap = tokenOverlap(candidate.text, existing.text);
+    if (overlap >= 0.82) return true;
+    if (candidate.source_id !== existing.source_id) return false;
+
+    const existingOrdinal = chunkOrdinal(existing.chunk_id);
+    const adjacent =
+      candidateOrdinal !== null &&
+      existingOrdinal !== null &&
+      Math.abs(candidateOrdinal - existingOrdinal) <= 1;
+
+    return overlap >= 0.68 || (adjacent && overlap >= 0.52);
+  });
+}
+
+function buildContext(matches: RankedMatch[], maxChars = 16000, maxChunks = 6) {
   const chosen: RankedMatch[] = [];
   let used = 0;
+  const relevanceFloor = matches.length
+    ? Math.max(0.48, matches[0].score - 0.16)
+    : 0.48;
 
   const canChoose = (match: RankedMatch) => {
     if (chosen.length >= maxChunks) return false;
+    if (chosen.length > 0 && match.score < relevanceFloor) return false;
 
     const text = String(match.text ?? "").trim();
     if (!text) return false;
+    if (isNearDuplicateEvidence(match, chosen)) return false;
+
+    const fromSameSource = chosen.filter(
+      (existing) => existing.source_id === match.source_id
+    ).length;
+    if (fromSameSource >= 3) return false;
 
     const remaining = maxChars - used;
     if (remaining < 500) return false;
@@ -261,6 +319,36 @@ function parseModelJson(raw: unknown): ParsedModelAnswer {
   }
 }
 
+function dedupeRepeatedSentences(answer: string) {
+  const parts = answer.match(/[^.!?؟\n]+(?:[.!?؟]+|$)|\n+/g) ?? [answer];
+  const seen = new Set<string>();
+  const kept: string[] = [];
+
+  for (const part of parts) {
+    if (/^\s*\n+\s*$/.test(part)) {
+      if (kept.length && !/\n$/.test(kept[kept.length - 1])) kept.push("\n");
+      continue;
+    }
+
+    const normalized = normalizeEvidenceText(
+      part.replace(/\[S\d+\]/gi, " ")
+    );
+
+    if (normalized.length >= 28) {
+      if (seen.has(normalized)) continue;
+      seen.add(normalized);
+    }
+
+    kept.push(part.trim());
+  }
+
+  return kept
+    .join(" ")
+    .replace(/\s+\n\s+/g, "\n")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function requestsConflictReview(question: string) {
   return /\b(conflict|conflicting|disagree|disagreement|different perspectives|different views|opposing|both perspectives)\b/i.test(question) ||
     /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(question);
@@ -283,6 +371,18 @@ function mergeRawMatches(groups: any[][]) {
   return Array.from(merged.values()).sort(
     (a, b) => Number(b.score ?? 0) - Number(a.score ?? 0)
   );
+}
+
+function expandQualityQueries(question: string) {
+  const isQualityQuestion =
+    /\b(qc|quality control|quality assurance|evaluation|evaluator|llm[- ]?as[- ]?judge|validation|verification)\b/i.test(question) ||
+    /(کنترل کیفیت|تضمین کیفیت|ارزیابی|ارزیاب|اعتبارسنجی|سنجش کیفیت|کیفیت پاسخ)/.test(question);
+
+  if (!isQualityQuestion) return [] as string[];
+
+  return [
+    `${question}\nLLM response evaluation quality control validation groundedness correctness relevance completeness agent evaluator judge reliability`
+  ];
 }
 
 async function expandConflictQueries(env: Env, question: string) {
@@ -344,7 +444,10 @@ export async function answerQuestion(env: Env, input: AskRequest) {
   const minScore = clamp(Number(env.MIN_RETRIEVAL_SCORE ?? "0.40"), 0, 1);
 
   const conflictQueries = await expandConflictQueries(env, question);
-  const retrievalQueries = [question, ...conflictQueries];
+  const qualityQueries = expandQualityQueries(question);
+  const retrievalQueries = Array.from(
+    new Set([question, ...qualityQueries, ...conflictQueries])
+  );
   const retrievalGroups = await Promise.all(
     retrievalQueries.map((query) => searchKnowledge(env, query, requestedTopK))
   );
@@ -378,11 +481,15 @@ Distinguish what the evidence supports from inference. If evidence is incomplete
 If supplied sources materially disagree, set conflict=true and explain the disagreement.
 Use inline citations like [S1], [S2] for factual claims.
 If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
+Answer the user's actual question directly; do not restate the question as the opening sentence.
+Select only evidence that directly helps answer the requested task. Ignore retrieved details that are merely about the same broad topic.
+For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets when the evidence supports it.
 Match answer depth to the question.
-For broad, explanatory, comparative, or multi-part questions, give a complete structured answer and normally use about 350-650 words when the evidence supports that depth.
+For broad, explanatory, comparative, or multi-part questions, normally use about 250-500 words when the evidence supports that depth.
 For a simple single-fact question, stay brief.
 Do not omit major supported subtopics merely to keep the answer short.
-Avoid repetition even when evidence chunks overlap.
+Never repeat the same claim, sentence, example, or sequence of steps. When evidence chunks overlap, synthesize the overlap once.
+Do not mention implementation details such as memory classes, async/await, parsers, or tool plumbing unless they directly answer the user's question.
 Do not expose long verbatim passages; synthesize.
 Respond in the language of the user's question.
 Judge whether the supplied evidence actually answers the user's question.
@@ -403,14 +510,14 @@ Return JSON only with exactly:
         { role: "system", content: system },
         { role: "user", content: user }
       ],
-      max_tokens: 1400,
+      max_tokens: 1000,
       temperature: 0.1,
       response_format: {
         type: "json_schema",
         json_schema: {
           type: "object",
           properties: {
-            answer: { type: "string", maxLength: 8000 },
+            answer: { type: "string", maxLength: 6000 },
             evidence_status: {
               type: "string",
               enum: ["supported", "partial", "no_evidence", "conflict"]
@@ -480,8 +587,12 @@ Return JSON only with exactly:
     retrieval_score: Number(m.score.toFixed(4))
   }));
 
+  const cleanedAnswer = dedupeRepeatedSentences(
+    parsed.answer || noEvidenceAnswer(question)
+  );
+
   let groundedAnswer = ensureInlineCitation(
-    parsed.answer || noEvidenceAnswer(question),
+    cleanedAnswer,
     chosen.length
   );
 

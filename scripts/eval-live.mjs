@@ -90,6 +90,43 @@ for (const test of cases) {
       }
     }
 
+    const anyTerms = Array.isArray(test.required_answer_any_terms)
+      ? test.required_answer_any_terms
+      : [];
+    if (
+      anyTerms.length &&
+      !anyTerms.some((term) => answerLower.includes(String(term).toLowerCase()))
+    ) {
+      errors.push("missing any required answer term: " + anyTerms.join(" | "));
+    }
+
+    for (const term of Array.isArray(test.forbidden_answer_terms) ? test.forbidden_answer_terms : []) {
+      if (answerLower.includes(String(term).toLowerCase())) {
+        errors.push("forbidden answer term " + term);
+      }
+    }
+
+    const normalizedSentences = answerText
+      .split(/[.!?؟\n]+/)
+      .map((sentence) =>
+        sentence
+          .toLowerCase()
+          .replace(/\[s\d+\]/g, " ")
+          .replace(/[^\p{L}\p{N}]+/gu, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+      .filter((sentence) => sentence.length >= 28);
+
+    const seenSentences = new Set();
+    for (const sentence of normalizedSentences) {
+      if (seenSentences.has(sentence)) {
+        errors.push("repeated answer sentence");
+        break;
+      }
+      seenSentences.add(sentence);
+    }
+
     if (
       body.evidence_status !== "no_evidence" &&
       (!body.confidence || typeof body.confidence.score !== "number")
