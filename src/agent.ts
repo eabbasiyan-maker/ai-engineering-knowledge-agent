@@ -291,6 +291,26 @@ function modelText(raw: unknown) {
   return "";
 }
 
+function extractJsonStringField(text: string, field: string) {
+  const pattern = new RegExp(
+    `"${field}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`,
+    "s"
+  );
+  const match = text.match(pattern);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(`"${match[1]}"`);
+  } catch {
+    return match[1]
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "\r")
+      .replace(/\\t/g, "\t")
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, "\\");
+  }
+}
+
 function parseModelJson(raw: unknown): ParsedModelAnswer {
   const cleaned = modelText(raw)
     .trim()
@@ -310,11 +330,20 @@ function parseModelJson(raw: unknown): ParsedModelAnswer {
       conflict_summary: parsed.conflict_summary ? String(parsed.conflict_summary) : null
     };
   } catch {
+    const salvagedAnswer = extractJsonStringField(cleaned, "answer");
+    const statusMatch = cleaned.match(
+      /"evidence_status"\s*:\s*"(supported|partial|no_evidence|conflict)"/i
+    );
+    const conflictMatch = cleaned.match(/"conflict"\s*:\s*(true|false)/i);
+    const salvagedSummary = extractJsonStringField(cleaned, "conflict_summary");
+
     return {
-      answer: cleaned,
-      evidence_status: null,
-      conflict: false,
-      conflict_summary: null
+      answer: String(salvagedAnswer ?? cleaned).trim(),
+      evidence_status: statusMatch
+        ? statusMatch[1].toLowerCase() as EvidenceStatus
+        : null,
+      conflict: conflictMatch?.[1].toLowerCase() === "true",
+      conflict_summary: salvagedSummary ? String(salvagedSummary) : null
     };
   }
 }
