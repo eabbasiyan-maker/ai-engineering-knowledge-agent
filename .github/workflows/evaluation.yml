@@ -2,25 +2,59 @@ name: Evaluation
 
 on:
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Deploy Worker"]
+    types: [completed]
+    branches: [main]
   push:
     branches: [main]
     paths:
       - "eval/**"
-      - "src/**"
       - "scripts/eval-live.mjs"
       - "scripts/eval-parity.mjs"
       - ".github/workflows/evaluation.yml"
-      - "package.json"
 
 jobs:
   evaluate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Decide whether live evaluation should run now
+        id: gate
+        shell: bash
+        run: |
+          SHOULD_RUN=true
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            CHANGED="$(git diff --name-only HEAD^ HEAD || true)"
+            echo "$CHANGED"
+
+            # If runtime code changed in the same push, wait for Deploy Worker
+            # to finish. The workflow_run trigger will evaluate that exact SHA.
+            if echo "$CHANGED" | grep -Eq '^(src/|db/|package\.json|package-lock\.json|\.github/workflows/deploy-worker\.yml)'; then
+              SHOULD_RUN=false
+              echo "Runtime changed; deferring live evaluation until Worker deployment completes."
+            fi
+          fi
+
+          echo "run=$SHOULD_RUN" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           node-version: 22
+
       - run: npm install --ignore-scripts
+        if: steps.gate.outputs.run == 'true'
+
       - run: npm run eval:live
+        if: steps.gate.outputs.run == 'true'
+
       - run: npm run eval:parity
+        if: steps.gate.outputs.run == 'true'

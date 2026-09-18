@@ -10,13 +10,15 @@ const cases = JSON.parse(
 
 const results = [];
 
-for (const test of cases) {
-  const started = Date.now();
-  let body = null;
-  let httpStatus = null;
-  const errors = [];
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  try {
+async function askWithRetry(test) {
+  const maxAttempts = 3;
+  let lastStatus = null;
+  let lastText = "";
+  let lastBody = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const res = await fetch(API_BASE + "/api/v1/ask", {
       method: "POST",
       headers: {
@@ -30,10 +32,63 @@ for (const test of cases) {
       })
     });
 
-    httpStatus = res.status;
-    body = JSON.parse(await res.text());
+    lastStatus = res.status;
+    lastText = await res.text();
 
-    if (!res.ok) errors.push("HTTP " + res.status);
+    try {
+      lastBody = JSON.parse(lastText);
+    } catch {
+      lastBody = null;
+    }
+
+    if (res.ok && lastBody) {
+      return { status: res.status, body: lastBody, attempts: attempt };
+    }
+
+    const retryable =
+      res.status === 429 ||
+      res.status >= 500 ||
+      lastBody === null;
+
+    if (!retryable || attempt === maxAttempts) {
+      if (lastBody) {
+        return { status: res.status, body: lastBody, attempts: attempt };
+      }
+
+      throw new Error(
+        "HTTP " +
+        String(lastStatus ?? "unknown") +
+        " returned non-JSON after " +
+        attempt +
+        " attempt(s): " +
+        lastText.slice(0, 120)
+      );
+    }
+
+    await wait(700 * attempt);
+  }
+
+  throw new Error(
+    "request failed after retries, last HTTP " + String(lastStatus ?? "unknown")
+  );
+}
+
+for (const test of cases) {
+  const started = Date.now();
+  let body = null;
+  let httpStatus = null;
+  let attempts = 0;
+  const errors = [];
+
+  try {
+    const response = await askWithRetry(test);
+    httpStatus = response.status;
+    body = response.body;
+    attempts = response.attempts;
+
+    if (httpStatus < 200 || httpStatus >= 300) {
+      errors.push("HTTP " + httpStatus);
+    }
 
     if (!test.expected_status.includes(body.evidence_status)) {
       errors.push("unexpected evidence status");
@@ -229,6 +284,7 @@ for (const test of cases) {
     pass: errors.length === 0,
     latency_ms: Date.now() - started,
     http_status: httpStatus,
+    attempts,
     evidence_status: body?.evidence_status ?? null,
     confidence: body?.confidence?.score ?? null,
     answer: body?.answer ?? null,

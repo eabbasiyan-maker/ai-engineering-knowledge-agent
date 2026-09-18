@@ -127,18 +127,20 @@
       ],
       [
         "latency",
-        "token",
+        "token usage",
         "request id",
-        "correlation",
-        "telemetry",
-        "trace",
-        "structured",
+        "correlation id",
+        "structured log",
+        "structured logging",
+        "model name",
         "توکن",
         "تاخیر",
         "تأخیر",
-        "ساختاریافته",
-        "هزینه",
-        "خطا"
+        "شناسه درخواست",
+        "شناسه همبستگی",
+        "لاگ ساختاریافته",
+        "نام مدل",
+        "هزینه"
       ]
     ],
     "forbidden_answer_terms": [
@@ -153,7 +155,7 @@
     "min_answer_chars": 180,
     "min_citation_count": 1,
     "min_need_count": 2,
-    "max_need_count": 3,
+    "max_need_count": 2,
     "min_coverage_ratio": 1
   },
   {
@@ -197,8 +199,8 @@
     "min_answer_chars": 260,
     "min_citation_count": 1,
     "min_need_count": 4,
-    "max_need_count": 5,
-    "min_coverage_ratio": 0.75
+    "max_need_count": 4,
+    "min_coverage_ratio": 1
   },
   {
     "id": "persian-six-part-agent-controls",
@@ -217,8 +219,46 @@
     "min_answer_chars": 280,
     "min_citation_count": 1,
     "min_need_count": 6,
-    "max_need_count": 7,
-    "min_coverage_ratio": 0.5
+    "max_need_count": 6,
+    "min_coverage_ratio": 0.83,
+    "required_answer_groups": [
+      [
+        "QC",
+        "ارزیابی",
+        "کیفیت",
+        "evaluation"
+      ],
+      [
+        "Logging",
+        "Observability",
+        "لاگ",
+        "مانیتورینگ",
+        "ردیابی"
+      ],
+      [
+        "Cost",
+        "FinOps",
+        "هزینه",
+        "توکن"
+      ],
+      [
+        "Security",
+        "guardrail",
+        "امنیت",
+        "گاردریل"
+      ],
+      [
+        "Retry",
+        "recovery",
+        "بازیابی",
+        "تلاش مجدد"
+      ],
+      [
+        "Memory",
+        "حافظه",
+        "مموری"
+      ]
+    ]
   },
   {
     "id": "out-of-domain-neptune",
