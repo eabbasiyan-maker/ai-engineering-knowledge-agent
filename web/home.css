@@ -625,7 +625,7 @@
 
 .stats-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   margin-top: var(--space-6);
   padding: 10px 18px;
@@ -719,11 +719,25 @@
 }
 
 /* ---------- Footer ---------- */
+.last-updated-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: var(--space-6);
+  padding: 14px 16px;
+  color: var(--color-text-muted);
+  font-size: var(--type-meta);
+  text-align: center;
+}
+.last-updated-row strong { color: var(--color-text-secondary); }
+
 .home-footer {
   padding: 0 0 28px;
   color: var(--color-text-muted);
   font-size: var(--type-meta);
   line-height: 1.8;
+  text-align: center;
 }
 .home-footer a { color: var(--color-primary); font-weight: 700; }
 
@@ -915,3 +929,31 @@
   .home-page .sources-card,
   .trust-strip { padding: 14px; }
 }
+
+/* Search loading: intentionally prominent so users know retrieval is active. */
+.home-page .state-loading {
+  position: sticky;
+  top: 88px;
+  z-index: 18;
+  width: min(720px, calc(100% - 24px));
+  margin: var(--space-5) auto;
+  padding: 18px 20px;
+  border: 1px solid #d8cce3;
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.97);
+  box-shadow: var(--shadow-md);
+}
+.home-page .state-loading .state-symbol {
+  display: grid;
+  place-items: center;
+}
+.home-page .state-loading .spinner {
+  width: 28px;
+  height: 28px;
+  display: block;
+  border: 3px solid #e7e1ea;
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: knowledge-spin .8s linear infinite;
+}
+@keyframes knowledge-spin { to { transform: rotate(360deg); } }
