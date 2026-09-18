@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#fbfaf7" />
-  <meta name="app-version" content="0.3.5" />
+  <meta name="app-version" content="0.3.6" />
   <title>AI.Knowledge — پرسش از کتابخانه مهندسی هوش مصنوعی</title>
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
@@ -39,7 +39,7 @@
   <main class="home-shell" id="main-content" tabindex="-1">
     <section class="home-hero" id="ask" aria-labelledby="hero-title">
       <div class="hero-visual" aria-hidden="true">
-        <img class="hero-knowledge-art" data-hero-version="0.3.5" src="/hero-ai-knowledge.jpg?v=0.3.5" alt="" width="400" height="400" loading="eager" decoding="async" />
+        <img class="hero-knowledge-art" data-hero-version="0.3.6" src="/hero-ai-knowledge.jpg?v=0.3.6" alt="" width="400" height="400" loading="eager" decoding="async" />
       </div>
 
       <div class="hero-copy">
@@ -123,52 +123,149 @@
       <div class="section-heading">
         <div>
           <h2 id="topics-title">حوزه‌های دانش</h2>
-          <p>موضوع‌ها را بر اساس حوزه مرور کن و مستقیماً سراغ بخش موردنظرت برو.</p>
+          <p>حوزه‌ها را باز کن؛ هر بخش، موضوعات اصلی موجود در کتابخانه و سؤال‌های پیشنهادی مرتبط را نشان می‌دهد.</p>
         </div>
       </div>
 
-      <div class="topic-index">
-        <div class="topic-index-head">
-          <h3>همه حوزه‌ها</h3>
-          <p>موضوع‌ها گروه‌بندی شده‌اند تا سریع‌تر چیزی را که دنبالش هستی پیدا کنی.</p>
-        </div>
+      <div class="knowledge-accordions" aria-label="فهرست کامل حوزه‌های دانش">
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Agent و معماری Agent</strong><small>مبانی، طراحی، Tool Use و الگوهای ساخت Agent</small></span>
+            <span class="accordion-count">۶ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="AI Agent چیست و اجزای اصلی معماری آن کدام‌اند؟"><strong>مبانی AI Agent</strong><span>تعریف Agent، اجزای اصلی و چرخه دریافت هدف، تصمیم و اقدام</span></button>
+            <button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>طراحی و ساخت Agent از پایه</strong><span>طراحی ساده، مرزبندی مسئولیت و تبدیل مسئله به جریان Agent</span></button>
+            <button type="button" data-question="Tool Use در Agent چگونه طراحی می‌شود و چه خطاهایی دارد؟"><strong>Tool Use و Action</strong><span>انتخاب ابزار، فراخوانی، ورودی و خروجی ابزار و کنترل خطا</span></button>
+            <button type="button" data-question="ReAct در AI Agent چیست و چه محدودیت‌هایی دارد؟"><strong>ReAct و الگوهای Reason + Act</strong><span>ترکیب reasoning و action و failure modeهای رایج</span></button>
+            <button type="button" data-question="Orchestration در AI Agent چه نقشی دارد؟"><strong>Orchestration و کنترل جریان</strong><span>هدایت مرحله‌ها، تصمیم بین ابزارها و کنترل چرخه اجرای Agent</span></button>
+            <button type="button" data-question="LLM در معماری Agent چه نقشی دارد و چه بخش‌هایی باید خارج از مدل کنترل شوند؟"><strong>LLM Foundations برای Agent</strong><span>نقش مدل زبانی در تصمیم‌گیری و مرز آن با کنترل‌های سیستم</span></button>
+          </div>
+        </details>
 
-        <div class="topic-groups">
-          <section class="topic-group" aria-labelledby="topic-agent">
-            <h4 id="topic-agent">ساخت و Orchestration Agent</h4>
-            <ul class="topic-list">
-              <li><button type="button" data-question="برای ساخت اولین AI Agent از کجا شروع کنم؟"><strong>AI Agent و معماری Agent</strong><span>اجزا، طراحی، Tool Use و ساخت Agent از پایه</span></button></li>
-              <li><button type="button" data-question="Memory، Context، Planning و Reflection در Agent چه نقشی دارند؟"><strong>Memory، Context، Planning و Reflection</strong><span>حافظه، زمینه، برنامه‌ریزی و بازبینی رفتار Agent</span></button></li>
-              <li><button type="button" data-question="چه زمانی Multi-Agent بهتر از یک Agent است؟"><strong>Multi-Agent Systems</strong><span>همکاری چند Agent، تقسیم مسئولیت و Orchestration</span></button></li>
-              <li><button type="button" data-question="Coding Agentها، Skills و Subagentها چگونه کار می‌کنند؟"><strong>Coding Agents و Developer Workflow</strong><span>Skills، Subagent، Hooks، MCP و CI/CD</span></button></li>
-            </ul>
-          </section>
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Memory، Context، Planning و Reflection</strong><small>حافظه، زمینه، برنامه‌ریزی و بازبینی رفتار Agent</small></span>
+            <span class="accordion-count">۶ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="Memory در AI Agent چه انواعی دارد و چه زمانی استفاده می‌شود؟"><strong>Memory</strong><span>ذخیره و بازیابی اطلاعات گفتگو و تجربه‌های قبلی Agent</span></button>
+            <button type="button" data-question="Context Engineering برای Agent چیست و چه تفاوتی با Prompt Engineering دارد؟"><strong>Context Engineering</strong><span>انتخاب و ساخت زمینه مناسب برای هر مرحله تصمیم‌گیری</span></button>
+            <button type="button" data-question="Planning در Agent چگونه کار می‌کند و چه زمانی لازم است؟"><strong>Planning</strong><span>شکستن هدف به مراحل و مدیریت اجرای چندمرحله‌ای</span></button>
+            <button type="button" data-question="Reflection در AI Agent چه کاربردی دارد؟"><strong>Reflection</strong><span>بازبینی خروجی یا مسیر اجرا و اصلاح تصمیم‌های بعدی</span></button>
+            <button type="button" data-question="Reflection چه فرقی با Planning در AI Agent دارد؟"><strong>Planning در برابر Reflection</strong><span>تفاوت برنامه‌ریزی پیش از عمل با بازبینی بعد از عمل</span></button>
+            <button type="button" data-question="چطور Context و Memory را طوری کنترل کنیم که Agent دچار اطلاعات اضافی نشود؟"><strong>کنترل Context و حافظه</strong><span>کاهش نویز، انتخاب اطلاعات مرتبط و محدودکردن زمینه</span></button>
+          </div>
+        </details>
 
-          <section class="topic-group" aria-labelledby="topic-knowledge">
-            <h4 id="topic-knowledge">دانش، Retrieval و ابزارها</h4>
-            <ul class="topic-list">
-              <li><button type="button" data-question="RAG و GraphRAG چه فرقی دارند و هرکدام کجا استفاده می‌شوند؟"><strong>RAG، GraphRAG و جست‌وجوی دانش</strong><span>Retrieval، Knowledge Graph و اتصال مدل به دانش معتبر</span></button></li>
-              <li><button type="button" data-question="MCP و A2A چیستند و چه زمانی استفاده می‌شوند؟"><strong>MCP، A2A و ابزارها</strong><span>اتصال Agent به Toolها و ارتباط ساختاریافته بین Agentها</span></button></li>
-            </ul>
-          </section>
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>RAG، Retrieval و Knowledge</strong><small>اتصال مدل به دانش معتبر، GraphRAG و Knowledge Graph</small></span>
+            <span class="accordion-count">۷ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="RAG چیست و چه زمانی از آن استفاده می‌کنیم؟"><strong>RAG</strong><span>بازیابی دانش و افزودن شواهد مرتبط به Context مدل</span></button>
+            <button type="button" data-question="Retrieval در RAG چگونه کار می‌کند و چه چیزهایی کیفیت آن را تعیین می‌کند؟"><strong>Retrieval</strong><span>پیداکردن قطعات مرتبط و اثر انتخاب شواهد بر پاسخ نهایی</span></button>
+            <button type="button" data-question="GraphRAG چیست و چه فرقی با RAG معمولی دارد؟"><strong>GraphRAG</strong><span>بازیابی مبتنی بر روابط و ساختار گراف برای سؤال‌های پیچیده‌تر</span></button>
+            <button type="button" data-question="Knowledge Graph در سیستم‌های AI چه نقشی دارد؟"><strong>Knowledge Graph</strong><span>نمایش موجودیت‌ها و روابط برای بازیابی ساختاریافته</span></button>
+            <button type="button" data-question="Agentic Retrieval چیست و Agent چگونه جست‌وجوی دانش را کنترل می‌کند؟"><strong>Agentic Retrieval</strong><span>تصمیم‌گیری Agent درباره جست‌وجو، اصلاح Query و انتخاب شواهد</span></button>
+            <button type="button" data-question="چطور پاسخ RAG را Grounded و قابل استناد نگه داریم؟"><strong>Grounding و Citation</strong><span>محدودکردن پاسخ به شواهد و نگه‌داشتن ارتباط ادعا با منبع</span></button>
+            <button type="button" data-question="چه زمانی Knowledge Graph برای RAG لازم است و چه زمانی اضافه است؟"><strong>انتخاب معماری دانش</strong><span>مقایسه Retrieval ساده، GraphRAG و Knowledge Graph بر اساس مسئله</span></button>
+          </div>
+        </details>
 
-          <section class="topic-group" aria-labelledby="topic-quality">
-            <h4 id="topic-quality">کیفیت، امنیت و عملیات</h4>
-            <ul class="topic-list">
-              <li><button type="button" data-question="چطور کیفیت و Reliability یک سیستم AI را ارزیابی کنیم؟"><strong>ارزیابی، Reliability و کاهش Hallucination</strong><span>تست کیفیت، خطاها و سنجش رفتار قابل‌اتکا</span></button></li>
-              <li><button type="button" data-question="مهم‌ترین ریسک‌های امنیتی Agentها و MCP چیست؟"><strong>امنیت و Governance</strong><span>Prompt Injection، Tool Attack، Red Teaming و Guardrail</span></button></li>
-              <li><button type="button" data-question="برای Production کردن Agent چه چیزهایی لازم است؟"><strong>Production، Observability و Deployment</strong><span>مانیتورینگ، استقرار، هزینه و عملیات پایدار</span></button></li>
-            </ul>
-          </section>
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Multi-Agent، MCP و A2A</strong><small>همکاری چند Agent، پروتکل‌ها و تقسیم مسئولیت</small></span>
+            <span class="accordion-count">۷ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="چه زمانی Multi-Agent بهتر از یک Agent است؟"><strong>Multi-Agent Systems</strong><span>زمان مناسب تقسیم کار میان چند Agent و هزینه‌های آن</span></button>
+            <button type="button" data-question="در Multi-Agent مسئولیت‌ها و نقش Agentها چگونه تقسیم می‌شوند؟"><strong>Role و Responsibility</strong><span>تفکیک مسئولیت، همکاری و جلوگیری از هم‌پوشانی Agentها</span></button>
+            <button type="button" data-question="MCP چیست و چه کاربردی در Agentها دارد؟"><strong>MCP</strong><span>اتصال ساختاریافته Agent به Toolها، منابع و Context خارجی</span></button>
+            <button type="button" data-question="A2A چیست و چه تفاوتی با MCP دارد؟"><strong>A2A</strong><span>ارتباط Agent-to-Agent و تفاوت آن با اتصال Agent به Tool</span></button>
+            <button type="button" data-question="Orchestration در معماری Multi-Agent چگونه انجام می‌شود؟"><strong>Multi-Agent Orchestration</strong><span>هماهنگی، routing، handoff و ترتیب اجرای Agentها</span></button>
+            <button type="button" data-question="Memory در Multi-Agent چگونه مدیریت می‌شود؟"><strong>Shared و Local Memory</strong><span>مرز حافظه هر Agent و اطلاعات مشترک میان Agentها</span></button>
+            <button type="button" data-question="برای ساخت Multi-Agent با MCP و A2A چه معماری‌هایی وجود دارد؟"><strong>معماری MCP + A2A</strong><span>ترکیب ابزارها، Agentها و ارتباط میان آن‌ها در یک سیستم</span></button>
+          </div>
+        </details>
 
-          <section class="topic-group" aria-labelledby="topic-product">
-            <h4 id="topic-product">محصول و تصمیم‌گیری</h4>
-            <ul class="topic-list">
-              <li><button type="button" data-question="برای ساخت یک AI Product خوب چه چیزهایی باید اندازه‌گیری شود؟"><strong>AI Product</strong><span>استراتژی محصول، Metrics، Lifecycle و تجربه کاربر</span></button></li>
-            </ul>
-            <div class="discovery-tip">با انتخاب هر موضوع، یک سؤال پیشنهادی داخل جست‌وجو قرار می‌گیرد و می‌توانی قبل از ارسال آن را تغییر بدهی.</div>
-          </section>
-        </div>
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Evaluation، Reliability و QC</strong><small>ارزیابی کیفیت، Hallucination و قابل‌اعتماد بودن پاسخ</small></span>
+            <span class="accordion-count">۷ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="چطور کیفیت پاسخ‌های LLM را ارزیابی کنیم؟"><strong>Evaluation پاسخ LLM</strong><span>Correctness، Relevance، Completeness و سنجش کیفیت خروجی</span></button>
+            <button type="button" data-question="QC برای پاسخ LLM در Agent چطور انجام می‌شود؟"><strong>QC پاسخ Agent</strong><span>Validation، سنجش شواهد، ارزیابی خروجی و تصمیم Pass/Retry</span></button>
+            <button type="button" data-question="LLM-as-Judge چیست و چه محدودیت‌هایی دارد؟"><strong>LLM-as-Judge</strong><span>استفاده از مدل برای ارزیابی پاسخ و نیاز به کنترل bias و معیار</span></button>
+            <button type="button" data-question="Hallucination چیست و چطور در سیستم‌های RAG و Agent کاهش پیدا می‌کند؟"><strong>Hallucination</strong><span>کاهش ادعاهای بدون شواهد با Retrieval، Grounding و Evaluation</span></button>
+            <button type="button" data-question="Reliability در یک سیستم AI چگونه اندازه‌گیری می‌شود؟"><strong>Reliability</strong><span>پایداری رفتار، خطاهای تکرارشونده و آزمون سناریوهای واقعی</span></button>
+            <button type="button" data-question="Failure modeهای رایج Agentها چیستند و چطور تست می‌شوند؟"><strong>Failure Modes</strong><span>خطای ابزار، loop، پاسخ ناقص و شکست در تصمیم‌گیری</span></button>
+            <button type="button" data-question="برای Agent چه مجموعه Eval و Regression Test لازم است؟"><strong>Eval Set و Regression</strong><span>ساخت سؤال‌های مرجع و جلوگیری از برگشت خطاهای قبلی</span></button>
+          </div>
+        </details>
+
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Security، Guardrail و Governance</strong><small>Prompt Injection، Tool Attack، Red Teaming و کنترل دسترسی</small></span>
+            <span class="accordion-count">۷ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="مهم‌ترین ریسک‌های امنیتی AI Agent چیستند؟"><strong>Agent Security</strong><span>ریسک‌های ناشی از مدل، ابزار، داده و اجرای Action</span></button>
+            <button type="button" data-question="Prompt Injection چیست و در Agentها چطور کنترل می‌شود؟"><strong>Prompt Injection</strong><span>ورودی مخرب و تلاش برای تغییر دستورها یا رفتار Agent</span></button>
+            <button type="button" data-question="Tool Attack در Agent چیست و چطور کاهش پیدا می‌کند؟"><strong>Tool Attack</strong><span>سوءاستفاده از ابزارها، ورودی ابزار و سطح دسترسی Action</span></button>
+            <button type="button" data-question="Red Teaming برای Agent چگونه انجام می‌شود؟"><strong>Red Teaming</strong><span>آزمون مهاجمانه برای کشف failure mode و مسیرهای سوءاستفاده</span></button>
+            <button type="button" data-question="Guardrail در سیستم Agentic چه لایه‌هایی باید داشته باشد؟"><strong>Guardrail</strong><span>کنترل ورودی، خروجی، ابزار، policy و محدودیت‌های runtime</span></button>
+            <button type="button" data-question="Governance برای سیستم‌های Agentic شامل چه چیزهایی است؟"><strong>Governance</strong><span>سیاست، مسئولیت، کنترل تغییر و قابلیت بررسی تصمیم‌ها</span></button>
+            <button type="button" data-question="MCP چه ریسک‌های امنیتی دارد و Threat Model آن چیست؟"><strong>MCP Security</strong><span>تهدیدهای اتصال Agent به Tool و Context خارجی</span></button>
+          </div>
+        </details>
+
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Production، Observability و FinOps</strong><small>استقرار، مانیتورینگ، هزینه و عملیات پایدار سیستم AI</small></span>
+            <span class="accordion-count">۷ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="برای Production کردن Agent چه چیزهایی لازم است؟"><strong>Production Readiness</strong><span>آمادگی معماری، تست، امنیت و عملیات قبل از انتشار</span></button>
+            <button type="button" data-question="Observability در Agentic AI شامل چه داده‌هایی است؟"><strong>Observability</strong><span>Trace، خطا، Tool Call، latency و مسیر تصمیم‌گیری Agent</span></button>
+            <button type="button" data-question="برای مانیتورینگ Agent چه Metricsهایی مهم‌اند؟"><strong>Monitoring و Metrics</strong><span>کیفیت، latency، خطا، استفاده از ابزار و سلامت جریان</span></button>
+            <button type="button" data-question="Deployment سیستم‌های Agentic چه چالش‌هایی دارد؟"><strong>Deployment</strong><span>انتشار، نسخه‌بندی و کنترل تغییرات در محیط Production</span></button>
+            <button type="button" data-question="FinOps در GenAI و Agentic AI چیست؟"><strong>FinOps و Cost</strong><span>کنترل هزینه مدل، Retrieval، Tool و معماری چندمرحله‌ای</span></button>
+            <button type="button" data-question="چطور Agent را برای خطاهای Provider و Tool مقاوم کنیم؟"><strong>Resilience و Recovery</strong><span>مدیریت شکست سرویس، retry و بازیابی جریان</span></button>
+            <button type="button" data-question="چه چیزهایی باعث می‌شود معماری Agent در Production قابل نگهداری باشد؟"><strong>Production Architecture</strong><span>تفکیک مسئولیت، مشاهده‌پذیری و کنترل پیچیدگی</span></button>
+          </div>
+        </details>
+
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>Coding Agents و Developer Workflow</strong><small>Skills، Subagent، Hooks، MCP و جریان توسعه</small></span>
+            <span class="accordion-count">۶ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="Coding Agent چیست و در توسعه نرم‌افزار چه کارهایی می‌تواند انجام دهد؟"><strong>Coding Agents</strong><span>تحلیل کد، تغییر فایل، تست و کمک به workflow توسعه</span></button>
+            <button type="button" data-question="Skills در Coding Agent چه هستند و چه زمانی استفاده می‌شوند؟"><strong>Skills</strong><span>قابلیت‌های قابل‌استفاده مجدد برای وظایف مشخص توسعه</span></button>
+            <button type="button" data-question="Subagent چیست و چه زمانی در Coding Agent مفید است؟"><strong>Subagents</strong><span>تفویض کار تخصصی و تقسیم وظایف بین عامل‌های کوچک‌تر</span></button>
+            <button type="button" data-question="Hooks در Coding Agent چه کاربردی دارند؟"><strong>Hooks</strong><span>اتصال رویدادهای workflow به کنترل‌ها و اقدام‌های خودکار</span></button>
+            <button type="button" data-question="MCP در Coding Agent چگونه استفاده می‌شود؟"><strong>MCP برای Developer Tools</strong><span>اتصال Agent کدنویس به ابزارها و منابع توسعه</span></button>
+            <button type="button" data-question="چطور Coding Agent را وارد CI/CD و فرآیند تیم توسعه کنیم؟"><strong>Developer Workflow و CI/CD</strong><span>جایگاه Agent در توسعه، تست، review و انتشار</span></button>
+          </div>
+        </details>
+
+        <details class="knowledge-accordion">
+          <summary>
+            <span><strong>AI Product و تصمیم‌گیری محصول</strong><small>Strategy، Metrics، Lifecycle و طراحی محصول مبتنی بر AI</small></span>
+            <span class="accordion-count">۵ موضوع</span>
+          </summary>
+          <div class="knowledge-accordion-body">
+            <button type="button" data-question="برای ساخت یک AI Product خوب از کجا شروع کنیم؟"><strong>AI Product Strategy</strong><span>تعریف مسئله، ارزش محصول و انتخاب نقش مناسب AI</span></button>
+            <button type="button" data-question="برای AI Product چه Metricsهایی باید اندازه‌گیری شود؟"><strong>Product Metrics</strong><span>کیفیت، استفاده، ارزش کاربر و شاخص‌های عملکرد محصول</span></button>
+            <button type="button" data-question="Lifecycle محصول مبتنی بر AI چه تفاوتی با محصول نرم‌افزاری معمولی دارد؟"><strong>AI Product Lifecycle</strong><span>ساخت، ارزیابی، انتشار و بهبود مداوم سیستم AI</span></button>
+            <button type="button" data-question="Product Manager برای سیستم Agentic چه تصمیم‌هایی باید بگیرد؟"><strong>Product Management برای Agent</strong><span>دامنه اختیار Agent، UX، ریسک و معیار موفقیت</span></button>
+            <button type="button" data-question="چطور بین قابلیت‌های AI و نیاز واقعی کاربر تعادل ایجاد کنیم؟"><strong>User Value و Scope</strong><span>جلوگیری از feature-driven AI و تمرکز بر مسئله واقعی کاربر</span></button>
+          </div>
+        </details>
       </div>
     </section>
 
@@ -267,7 +364,7 @@
 
   <footer class="home-footer">
     <span>AI.Knowledge — دستیار تخصصی یادگیری مهندسی هوش مصنوعی، توسعه‌یافته توسط تیم Communication Platform.</span>
-    <span class="app-version" aria-label="نسخه برنامه">نسخه ۰.۳.۵</span>
+    <span class="app-version" aria-label="نسخه برنامه">نسخه ۰.۳.۶</span>
   </footer>
 
   <script src="/app.js" defer></script>

@@ -172,3 +172,117 @@
   .learning-path,
   .topic-index { padding-inline: 14px; }
 }
+
+
+/* Knowledge Areas v0.3.6 — comprehensive, compact expandable index. */
+.knowledge-accordions {
+  border-top: 1px solid var(--color-border);
+}
+
+.knowledge-accordion {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.knowledge-accordion summary {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 12px 2px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.knowledge-accordion summary::-webkit-details-marker { display: none; }
+
+.knowledge-accordion summary > span:first-child {
+  min-width: 0;
+  display: block;
+}
+
+.knowledge-accordion summary strong {
+  display: block;
+  color: var(--color-text);
+  font-size: .86rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.knowledge-accordion summary small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: .62rem;
+  line-height: 1.7;
+}
+
+.knowledge-accordion summary::after {
+  content: "⌄";
+  flex: 0 0 auto;
+  color: var(--color-primary);
+  font-size: 1rem;
+  transition: transform var(--motion-fast);
+}
+
+.knowledge-accordion[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.accordion-count {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  color: var(--color-text-muted);
+  font-size: .58rem;
+  white-space: nowrap;
+}
+
+.knowledge-accordion-body {
+  padding: 0 0 10px;
+  border-top: 1px dashed #eee9f0;
+}
+
+.knowledge-accordion-body button {
+  width: 100%;
+  display: block;
+  padding: 10px 8px;
+  border: 0;
+  border-bottom: 1px solid #f1edf3;
+  color: var(--color-text);
+  background: transparent;
+  text-align: right;
+  transition: background var(--motion-fast), color var(--motion-fast), padding-inline-start var(--motion-fast);
+}
+
+.knowledge-accordion-body button:last-child { border-bottom: 0; }
+
+.knowledge-accordion-body button:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+  padding-inline-start: 12px;
+}
+
+.knowledge-accordion-body strong {
+  display: block;
+  font-size: .72rem;
+  font-weight: 760;
+  line-height: 1.65;
+}
+
+.knowledge-accordion-body span {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+  font-size: .6rem;
+  line-height: 1.7;
+}
+
+@media (max-width: 680px) {
+  .knowledge-accordion summary {
+    align-items: flex-start;
+    min-height: 54px;
+  }
+  .accordion-count { display: none; }
+  .knowledge-accordion summary strong { font-size: .82rem; }
+  .knowledge-accordion-body strong { font-size: .7rem; }
+}
