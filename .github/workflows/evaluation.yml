@@ -8,6 +8,7 @@ on:
       - "eval/**"
       - "src/**"
       - "scripts/eval-live.mjs"
+      - "scripts/eval-parity.mjs"
       - ".github/workflows/evaluation.yml"
       - "package.json"
 
