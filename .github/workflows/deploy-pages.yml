@@ -49,8 +49,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.4\"",
-            "data-hero-version=\"0.3.4\""
+            "name=\"app-version\" content=\"0.3.5\"",
+            "hero-ai-knowledge.jpg?v=0.3.5"
           ];
           let last = null;
 
@@ -97,8 +97,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.4\"",
-            "data-hero-version=\"0.3.4\"",
+            "name=\"app-version\" content=\"0.3.5\"",
+            "hero-ai-knowledge.jpg?v=0.3.5",
             "href=\"/answer.css\"",
             "href=\"/discovery.css\"",
             "href=\"/library.css\""
@@ -107,7 +107,7 @@ jobs:
             throw new Error("Worker homepage UI is stale or unavailable");
           }
 
-          const heroRes = await fetch(base + "/hero-ai-knowledge.webp?deploy=" + cacheBust, { cache: "no-store" });
+          const heroRes = await fetch(base + "/hero-ai-knowledge.jpg?deploy=" + cacheBust, { cache: "no-store" });
           const heroType = heroRes.headers.get("content-type") || "";
           if (!heroRes.ok || !heroType.includes("image/")) {
             throw new Error("Versioned hero asset is unavailable from Worker");
