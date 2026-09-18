@@ -100,6 +100,19 @@ for (const test of cases) {
       errors.push("missing any required answer term: " + anyTerms.join(" | "));
     }
 
+    const requiredGroups = Array.isArray(test.required_answer_groups)
+      ? test.required_answer_groups
+      : [];
+    for (const group of requiredGroups) {
+      const terms = Array.isArray(group) ? group : [];
+      if (
+        terms.length &&
+        !terms.some((term) => answerLower.includes(String(term).toLowerCase()))
+      ) {
+        errors.push("missing required concept group: " + terms.join(" | "));
+      }
+    }
+
     for (const term of Array.isArray(test.forbidden_answer_terms) ? test.forbidden_answer_terms : []) {
       if (answerLower.includes(String(term).toLowerCase())) {
         errors.push("forbidden answer term " + term);
