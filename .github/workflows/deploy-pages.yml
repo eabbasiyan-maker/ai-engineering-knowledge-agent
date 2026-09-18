@@ -49,8 +49,9 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.5\"",
-            "hero-ai-knowledge.jpg?v=0.3.5"
+            "name=\"app-version\" content=\"0.3.6\"",
+            "hero-ai-knowledge.jpg?v=0.3.6",
+            "class=\"knowledge-accordions\""
           ];
           let last = null;
 
@@ -97,8 +98,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "name=\"app-version\" content=\"0.3.5\"",
-            "hero-ai-knowledge.jpg?v=0.3.5",
+            "name=\"app-version\" content=\"0.3.6\"",
+            "hero-ai-knowledge.jpg?v=0.3.6",
             "href=\"/answer.css\"",
             "href=\"/discovery.css\"",
             "href=\"/library.css\""
