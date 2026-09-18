@@ -19,6 +19,7 @@ const UI_PATHS = new Set([
   "/app.js",
   "/home.css",
   "/hero-ai-knowledge.webp",
+  "/hero-ai-knowledge.jpg",
   "/answer.css",
   "/discovery.css",
   "/library.css",
@@ -63,7 +64,7 @@ async function proxyUiAsset(pathname: string): Promise<Response> {
   headers.set("Referrer-Policy", "no-referrer");
   headers.delete("content-security-policy");
 
-  if (sourcePath.endsWith(".webp")) {
+  if (/\.(?:webp|jpe?g)$/i.test(sourcePath)) {
     return new Response(upstream.body, { status: 200, headers });
   }
 
