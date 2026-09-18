@@ -107,6 +107,25 @@ function tokenOverlap(a: string, b: string) {
   return shared / Math.min(left.size, right.size);
 }
 
+function bestEvidenceLabel(answer: string, chosen: RankedMatch[]) {
+  if (!answer.trim() || !chosen.length) return null;
+
+  const scored = chosen
+    .map((match, index) => ({
+      label: `S${index + 1}`,
+      overlap: tokenOverlap(answer, match.text),
+      retrieval: match.score
+    }))
+    .sort((a, b) =>
+      (b.overlap * 0.85 + b.retrieval * 0.15) -
+      (a.overlap * 0.85 + a.retrieval * 0.15)
+    );
+
+  const best = scored[0];
+  if (!best || best.overlap < 0.12) return null;
+  return best.label;
+}
+
 function isNearDuplicateEvidence(candidate: RankedMatch, chosen: RankedMatch[]) {
   const candidateOrdinal = chunkOrdinal(candidate.chunk_id);
 
@@ -708,10 +727,16 @@ Return JSON only with exactly:
   if (
     groundedAnswer &&
     !/\[S\d+\]/.test(groundedAnswer) &&
-    chosen.length > 0 &&
-    distinctChosenSources === 1
+    chosen.length > 0
   ) {
-    groundedAnswer = groundedAnswer + " [S1]";
+    if (distinctChosenSources === 1) {
+      groundedAnswer = groundedAnswer + " [S1]";
+    } else {
+      const fallbackLabel = bestEvidenceLabel(groundedAnswer, chosen);
+      if (fallbackLabel) {
+        groundedAnswer = groundedAnswer + ` [${fallbackLabel}]`;
+      }
+    }
   }
 
   if (evidenceStatus === "conflict") {
@@ -734,7 +759,7 @@ Return JSON only with exactly:
       citedMatches.length ? citedMatches : chosen,
       evidenceStatus
     ),
-    sources: visibleSources.length ? visibleSources : sources.slice(0, 1),
+    sources: visibleSources,
     retrieval: {
       retrieved: rawMatches.length,
       eligible: ranked.length,
