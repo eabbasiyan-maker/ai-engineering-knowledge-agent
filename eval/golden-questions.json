@@ -2,47 +2,97 @@
   {
     "id": "react-failure-modes",
     "question": "What are common ReAct failure modes and how can they be mitigated?",
-    "expected_status": ["supported", "partial"],
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
     "expected_source_ids": [],
-    "required_answer_terms": ["ReAct"],
+    "required_answer_terms": [
+      "ReAct"
+    ],
     "requires_inline_citation": true
   },
   {
     "id": "reflection-planning",
     "question": "How does reflection complement planning in an AI agent?",
-    "expected_status": ["supported", "partial"],
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
     "expected_source_ids": [],
-    "required_answer_terms": ["reflection", "planning"],
+    "required_answer_terms": [
+      "reflection",
+      "planning"
+    ],
     "requires_inline_citation": true
   },
   {
     "id": "react-tool-failure",
     "question": "How can a ReAct-style agent recover when a tool call fails?",
-    "expected_status": ["supported", "partial"],
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
     "expected_source_ids": [],
-    "required_answer_terms": ["fail"],
+    "required_answer_terms": [
+      "fail"
+    ],
     "requires_inline_citation": true
   },
   {
     "id": "react-limitations",
     "question": "What are the limitations of the ReAct pattern?",
-    "expected_status": ["supported", "partial"],
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
     "expected_source_ids": [],
-    "required_answer_terms": ["ReAct"],
+    "required_answer_terms": [
+      "ReAct"
+    ],
     "requires_inline_citation": true
   },
   {
     "id": "persian-reflection",
     "question": "Reflection در AI Agent چه کاربردی دارد؟",
-    "expected_status": ["supported", "partial"],
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
     "expected_source_ids": [],
-    "required_answer_terms": ["Reflection"],
+    "required_answer_terms": [
+      "Reflection"
+    ],
+    "requires_inline_citation": true
+  },
+  {
+    "id": "persian-llm-response-qc",
+    "question": "qc برای پاسخ llm به ایجنت چطور انجام میشه؟",
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
+    "expected_source_ids": [],
+    "required_answer_terms": [],
+    "required_answer_any_terms": [
+      "ارزیابی",
+      "کیفیت",
+      "QC"
+    ],
+    "forbidden_answer_terms": [
+      "async/await",
+      "get_messages",
+      "_parse_response",
+      "class Memory"
+    ],
     "requires_inline_citation": true
   },
   {
     "id": "out-of-domain-neptune",
     "question": "What is the recommended orbital insertion burn for a crewed mission to Neptune?",
-    "expected_status": ["no_evidence"],
+    "expected_status": [
+      "no_evidence"
+    ],
     "expected_source_ids": [],
     "required_answer_terms": [],
     "requires_inline_citation": false
@@ -50,7 +100,9 @@
   {
     "id": "hallucination-react-mars-benchmark",
     "question": "According to the approved knowledge base, what exact accuracy percentage did ReAct achieve on the Mars Rover Benchmark?",
-    "expected_status": ["no_evidence"],
+    "expected_status": [
+      "no_evidence"
+    ],
     "expected_source_ids": [],
     "required_answer_terms": [],
     "requires_inline_citation": false
@@ -58,7 +110,9 @@
   {
     "id": "hallucination-reflection-latency",
     "question": "What exact percentage latency reduction does reflection provide compared with plain ReAct?",
-    "expected_status": ["no_evidence"],
+    "expected_status": [
+      "no_evidence"
+    ],
     "expected_source_ids": [],
     "required_answer_terms": [],
     "requires_inline_citation": false
@@ -66,9 +120,17 @@
   {
     "id": "conflict-agent-definition",
     "question": "Compare these two approved-source definitions explicitly. An Illustrated Guide to AI Agents describes an LLM-backed agent as a reasoning LLM augmented with memory, tools, planning, and reflection. Production-Grade Agentic AI says 'Real agents aren't LLM + Tools' and defines real agents as persistent autonomous distributed applications that maintain state and pursue goals independently. Are these definitions materially in conflict about what counts as an AI agent? Explain the disagreement and cite both sources.",
-    "expected_status": ["conflict"],
-    "expected_source_ids": ["BOOK-003", "BOOK-010"],
-    "required_answer_terms": ["agent", "LLM"],
+    "expected_status": [
+      "conflict"
+    ],
+    "expected_source_ids": [
+      "BOOK-003",
+      "BOOK-010"
+    ],
+    "required_answer_terms": [
+      "agent",
+      "LLM"
+    ],
     "requires_inline_citation": true
   }
 ]
