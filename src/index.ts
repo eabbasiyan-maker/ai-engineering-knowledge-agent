@@ -18,6 +18,7 @@ const UI_PATHS = new Set([
   "/index.html",
   "/app.js",
   "/home.css",
+  "/hero-ai-knowledge.webp",
   "/answer.css",
   "/discovery.css",
   "/library.css",
@@ -56,6 +57,16 @@ async function proxyUiAsset(pathname: string): Promise<Response> {
     return new Response("UI asset unavailable", { status: upstream.status });
   }
 
+  const headers = new Headers(upstream.headers);
+  headers.set("Cache-Control", "public, max-age=300");
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "no-referrer");
+  headers.delete("content-security-policy");
+
+  if (sourcePath.endsWith(".webp")) {
+    return new Response(upstream.body, { status: 200, headers });
+  }
+
   let body = await upstream.text();
 
   if (sourcePath === "/ingest-pdf.js") {
@@ -76,12 +87,6 @@ async function proxyUiAsset(pathname: string): Promise<Response> {
       "/vendor/fflate.js"
     );
   }
-
-  const headers = new Headers(upstream.headers);
-  headers.set("Cache-Control", "public, max-age=300");
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "no-referrer");
-  headers.delete("content-security-policy");
 
   return new Response(body, { status: 200, headers });
 }
