@@ -385,6 +385,30 @@ function expandQualityQueries(question: string) {
   ];
 }
 
+function expandObservabilityQueries(question: string) {
+  const isObservabilityQuestion =
+    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
+    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
+
+  if (!isObservabilityQuestion) return [] as string[];
+
+  return [
+    `${question}\nLLM agent observability logging tracing telemetry audit request response prompt context model latency token usage cost errors retries evaluation production monitoring`,
+    `${question}\nproduction AI observability trace logs model input output retrieval sources tool execution latency tokens errors request id monitoring`
+  ];
+}
+
+function questionAsksQualityAndObservability(question: string) {
+  const quality =
+    /\b(qc|quality control|quality assurance|evaluation|evaluator|validation|verification)\b/i.test(question) ||
+    /(کنترل کیفیت|تضمین کیفیت|ارزیابی|اعتبارسنجی|کیفیت پاسخ)/.test(question);
+  const observability =
+    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
+    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
+
+  return quality && observability;
+}
+
 async function expandConflictQueries(env: Env, question: string) {
   if (!requestsConflictReview(question)) return [] as string[];
 
@@ -445,8 +469,9 @@ export async function answerQuestion(env: Env, input: AskRequest) {
 
   const conflictQueries = await expandConflictQueries(env, question);
   const qualityQueries = expandQualityQueries(question);
+  const observabilityQueries = expandObservabilityQueries(question);
   const retrievalQueries = Array.from(
-    new Set([question, ...qualityQueries, ...conflictQueries])
+    new Set([question, ...qualityQueries, ...observabilityQueries, ...conflictQueries])
   );
   const retrievalGroups = await Promise.all(
     retrievalQueries.map((query) => searchKnowledge(env, query, requestedTopK))
