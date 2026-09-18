@@ -613,45 +613,32 @@ Return JSON only with exactly:
           messages: [
             {
               role: "system",
-              content: system + "\nCitation repair pass: rewrite the draft faithfully, keep only claims supported by the approved evidence, and add the correct [S#] label to every factual paragraph or list item. Do not add new claims."
+              content: "You are a citation repairer. Return only the corrected answer text, not JSON. Preserve the draft's meaning, remove unsupported claims, and add the correct [S#] citation to every factual paragraph or list item. Use only the approved evidence and never invent a source label."
             },
             {
               role: "user",
-              content: `${user}\n\nDraft that needs citation repair:\n${parsed.answer}`
+              content: `Question:\n${question}\n\nApproved evidence:\n${context}\n\nDraft to repair:\n${parsed.answer}`
             }
           ],
-          max_tokens: 1000,
-          temperature: 0,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              type: "object",
-              properties: {
-                answer: { type: "string", maxLength: 6000 },
-                evidence_status: {
-                  type: "string",
-                  enum: ["supported", "partial", "no_evidence", "conflict"]
-                },
-                conflict: { type: "boolean" },
-                conflict_summary: { type: "string" }
-              },
-              required: ["answer", "evidence_status", "conflict", "conflict_summary"]
-            }
-          }
+          max_tokens: 900,
+          temperature: 0
         } as any
       ) as any;
 
-      const repairedParsed = parseModelJson(repaired);
-      if (repairedParsed.answer && /\[S\d+\]/.test(repairedParsed.answer)) {
+      const repairedText = modelText(repaired)
+        .trim()
+        .replace(/^\`\`\`(?:text|markdown)?\s*/i, "")
+        .replace(/\`\`\`$/i, "")
+        .trim();
+
+      if (repairedText && /\[S\d+\]/.test(repairedText)) {
         parsed = {
-          answer: repairedParsed.answer,
-          evidence_status: repairedParsed.evidence_status ?? parsed.evidence_status,
-          conflict: repairedParsed.conflict || parsed.conflict,
-          conflict_summary: repairedParsed.conflict_summary ?? parsed.conflict_summary
+          ...parsed,
+          answer: repairedText
         };
       }
     } catch {
-      // Keep the original grounded draft; do not fabricate citation labels.
+      // Keep the original draft; deterministic fallback below is limited to one-source evidence.
     }
   }
 
