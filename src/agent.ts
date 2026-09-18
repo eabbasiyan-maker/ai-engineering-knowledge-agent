@@ -508,7 +508,11 @@ Use inline citations like [S1], [S2] for factual claims.
 If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
 Answer the user's actual question directly; do not restate the question as the opening sentence.
 Select only evidence that directly helps answer the requested task. Ignore retrieved details that are merely about the same broad topic.
-For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets when the evidence supports it.
+Before drafting, identify every explicit part of the user's request. If the question asks for multiple things, cover every supported part separately; never answer only the first part.
+When a question asks about both response quality/evaluation and logging/observability, structure the answer into two distinct parts: (1) QC/evaluation and (2) logging/observability.
+Do not treat LLM-as-Judge and evaluator LLM as separate techniques; synthesize them as one family.
+For logging/observability, report only fields and practices actually supported by the supplied evidence. If one requested part lacks direct evidence, say so and use evidence_status="partial".
+For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets per major requested part when the evidence supports it.
 Match answer depth to the question.
 For broad, explanatory, comparative, or multi-part questions, normally use about 250-500 words when the evidence supports that depth.
 For a simple single-fact question, stay brief.
@@ -525,7 +529,10 @@ If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
-  const user = `Question:\n${question}\n\nApproved evidence:\n${context}`;
+  const multipartHint = questionAsksQualityAndObservability(question)
+    ? "\nThis question has two explicit parts: quality/evaluation and logging/observability. Cover both separately from the evidence."
+    : "";
+  const user = `Question:\n${question}${multipartHint}\n\nApproved evidence:\n${context}`;
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
 
   const generated = await env.AI.run(
