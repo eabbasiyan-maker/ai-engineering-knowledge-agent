@@ -24,7 +24,8 @@
       "reflection",
       "planning"
     ],
-    "requires_inline_citation": true
+    "requires_inline_citation": true,
+    "max_need_count": 1
   },
   {
     "id": "react-tool-failure",
@@ -104,6 +105,18 @@
         "evaluation"
       ],
       [
+        "LLM-as-Judge",
+        "evaluator",
+        "correctness",
+        "relevance",
+        "groundedness",
+        "faithfulness",
+        "ارزیاب",
+        "صحت",
+        "درستی",
+        "معیار"
+      ],
+      [
         "لاگ",
         "logging",
         "Observability",
@@ -111,6 +124,21 @@
         "trace",
         "ردیابی",
         "مانیتورینگ"
+      ],
+      [
+        "latency",
+        "token",
+        "request id",
+        "correlation",
+        "telemetry",
+        "trace",
+        "structured",
+        "توکن",
+        "تاخیر",
+        "تأخیر",
+        "ساختاریافته",
+        "هزینه",
+        "خطا"
       ]
     ],
     "forbidden_answer_terms": [
@@ -121,7 +149,76 @@
       "evidence_status: supported",
       "evidence_status:supported"
     ],
-    "requires_inline_citation": true
+    "requires_inline_citation": true,
+    "min_answer_chars": 180,
+    "min_citation_count": 1,
+    "min_need_count": 2,
+    "max_need_count": 3,
+    "min_coverage_ratio": 1
+  },
+  {
+    "id": "persian-four-part-agent-production",
+    "question": "برای یک AI Agent در production، Memory، Planning، Evaluation و Logging را چطور طراحی و کنترل کنیم؟",
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
+    "expected_source_ids": [],
+    "required_answer_terms": [],
+    "required_answer_groups": [
+      [
+        "Memory",
+        "حافظه",
+        "مموری"
+      ],
+      [
+        "Planning",
+        "برنامه‌ریزی",
+        "برنامه ریزی"
+      ],
+      [
+        "Evaluation",
+        "ارزیابی",
+        "کیفیت"
+      ],
+      [
+        "Logging",
+        "Observability",
+        "لاگ",
+        "مانیتورینگ",
+        "ردیابی"
+      ]
+    ],
+    "forbidden_answer_terms": [
+      "evidence_status: supported",
+      "evidence_status:supported"
+    ],
+    "requires_inline_citation": true,
+    "min_answer_chars": 260,
+    "min_citation_count": 1,
+    "min_need_count": 4,
+    "max_need_count": 5,
+    "min_coverage_ratio": 0.75
+  },
+  {
+    "id": "persian-six-part-agent-controls",
+    "question": "برای یک AI Agent در production درباره QC، Logging، Cost، Security، Retry و Memory چه کنترل‌هایی لازم است؟",
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
+    "expected_source_ids": [],
+    "required_answer_terms": [],
+    "forbidden_answer_terms": [
+      "evidence_status: supported",
+      "evidence_status:supported"
+    ],
+    "requires_inline_citation": true,
+    "min_answer_chars": 280,
+    "min_citation_count": 1,
+    "min_need_count": 6,
+    "max_need_count": 7,
+    "min_coverage_ratio": 0.5
   },
   {
     "id": "out-of-domain-neptune",
@@ -167,6 +264,7 @@
       "agent",
       "LLM"
     ],
-    "requires_inline_citation": true
+    "requires_inline_citation": true,
+    "max_need_count": 1
   }
 ]

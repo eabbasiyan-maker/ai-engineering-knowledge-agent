@@ -84,6 +84,70 @@ for (const test of cases) {
     }
 
     const answerLower = answerText.toLowerCase();
+
+    if (
+      Number.isFinite(Number(test.min_answer_chars)) &&
+      answerText.trim().length < Number(test.min_answer_chars)
+    ) {
+      errors.push(
+        "answer shorter than min_answer_chars: " +
+        answerText.trim().length +
+        " < " +
+        Number(test.min_answer_chars)
+      );
+    }
+
+    const citationCount = Array.from(answerText.matchAll(/\[S\d+\]/g)).length;
+    if (
+      Number.isFinite(Number(test.min_citation_count)) &&
+      citationCount < Number(test.min_citation_count)
+    ) {
+      errors.push(
+        "citation count below minimum: " +
+        citationCount +
+        " < " +
+        Number(test.min_citation_count)
+      );
+    }
+
+    const retrievalNeedCount = Number(body?.retrieval?.need_count ?? 0);
+    if (
+      Number.isFinite(Number(test.min_need_count)) &&
+      retrievalNeedCount < Number(test.min_need_count)
+    ) {
+      errors.push(
+        "need_count below minimum: " +
+        retrievalNeedCount +
+        " < " +
+        Number(test.min_need_count)
+      );
+    }
+
+    if (
+      Number.isFinite(Number(test.max_need_count)) &&
+      retrievalNeedCount > Number(test.max_need_count)
+    ) {
+      errors.push(
+        "need_count above maximum: " +
+        retrievalNeedCount +
+        " > " +
+        Number(test.max_need_count)
+      );
+    }
+
+    const coverageRatio = Number(body?.retrieval?.coverage_ratio ?? 0);
+    if (
+      Number.isFinite(Number(test.min_coverage_ratio)) &&
+      coverageRatio < Number(test.min_coverage_ratio)
+    ) {
+      errors.push(
+        "coverage_ratio below minimum: " +
+        coverageRatio +
+        " < " +
+        Number(test.min_coverage_ratio)
+      );
+    }
+
     for (const term of test.required_answer_terms) {
       if (!answerLower.includes(String(term).toLowerCase())) {
         errors.push("missing answer term " + term);
