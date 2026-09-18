@@ -651,7 +651,26 @@ function splitExplicitQuestionParts(question: string) {
   return Array.from(new Set(parts)).slice(0, 8);
 }
 
+function isRelationalQuestion(question: string) {
+  return requestsConflictReview(question) ||
+    /\b(compare|comparison|difference|different from|versus|vs\.?|complement|relationship|relate|trade-?off|interact|interaction)\b/i.test(question) ||
+    /(مقایسه|تفاوت|فرق|چه فرقی|رابطه|ارتباط بین|در برابر|مکمل|تعامل|ترید.?آف)/.test(question);
+}
+
 function buildInformationNeeds(question: string): InformationNeed[] {
+  // Relationship/comparison questions are one information need even when they
+  // mention several concepts. Splitting them would destroy the relationship
+  // the user is actually asking about.
+  if (isRelationalQuestion(question)) {
+    return [{
+      id: "primary",
+      label: question.slice(0, 100),
+      query: question,
+      required: true,
+      aliases: []
+    }];
+  }
+
   const needs: InformationNeed[] = [];
   const matchedRules = conceptRules.filter((rule) =>
     rule.pattern.test(question) || rule.faPattern.test(question)
@@ -926,6 +945,7 @@ export async function answerQuestion(env: Env, input: AskRequest) {
         used: 0,
         min_score: minScore,
         query_count: retrievalPlans.length,
+        search_runs: retrievalRuns.length,
         need_count: needs.length,
         coverage_ratio: 0,
         coverage
@@ -1080,6 +1100,10 @@ Return JSON only with exactly:
         used: chosen.length,
         min_score: minScore,
         query_count: retrievalPlans.length,
+        search_runs: retrievalRuns.length,
+        need_count: needs.length,
+        coverage_ratio: coverageRatio,
+        coverage,
         generation_model: model
       }
     };
