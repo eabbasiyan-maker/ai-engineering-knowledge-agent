@@ -43,6 +43,12 @@ function setLoading(value) {
   if (askButton) askButton.disabled = value;
   if (askButtonLabel) askButtonLabel.textContent = value ? "در حال جست‌وجو…" : "پرسیدن";
   form?.setAttribute("aria-busy", value ? "true" : "false");
+
+  if (value && loading) {
+    requestAnimationFrame(() => {
+      loading.scrollIntoView({ behavior: scrollBehavior(), block: "center" });
+    });
+  }
 }
 
 function showError({ title, message, canRetry = true }) {
