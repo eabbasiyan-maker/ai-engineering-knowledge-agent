@@ -1,9 +1,10 @@
 .home-page {
-  --type-h2: 1.35rem;
-  --type-h3: 1rem;
-  --type-body: .9375rem;
-  --type-support: .8125rem;
-  --type-meta: .75rem;
+  /* Non-hero typography is intentionally 20% smaller than v0.3.4. */
+  --type-h2: 1.08rem;
+  --type-h3: .8rem;
+  --type-body: .75rem;
+  --type-support: .65rem;
+  --type-meta: .6rem;
   color: var(--color-text);
   background:
     radial-gradient(circle at 82% 4%, rgba(70, 48, 111, .08), transparent 24rem),
@@ -244,7 +245,7 @@
   max-width: 720px;
   margin: var(--space-3) 0 0;
   color: var(--color-text-secondary);
-  font-size: var(--type-body);
+  font-size: .9375rem;
   line-height: 1.95;
 }
 
@@ -281,7 +282,7 @@
   padding: 0 var(--space-4);
   color: var(--color-text);
   background: transparent;
-  font-size: var(--type-body);
+  font-size: .9375rem;
   text-align: right;
 }
 .ask-form input:focus-visible { outline: 0; box-shadow: none; }
@@ -407,7 +408,7 @@
   max-width: 900px;
   margin-top: var(--space-5);
   color: var(--color-text);
-  font-size: var(--type-body);
+  font-size: .9375rem;
   line-height: 2.05;
   overflow-wrap: anywhere;
 }
@@ -1014,4 +1015,49 @@
   font-weight: 800;
   direction: rtl;
   unicode-bidi: isolate;
+}
+
+
+/* ---------- Minimal library source list (v0.3.5) ---------- */
+.books-section {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.library-source-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-border);
+}
+
+.library-source-list li {
+  padding: 12px 2px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.library-source-list strong {
+  display: block;
+  color: var(--color-text);
+  font-size: .84rem;
+  font-weight: 750;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.library-source-list small {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-text-muted);
+  font-size: .62rem;
+  line-height: 1.7;
+  unicode-bidi: plaintext;
+}
+
+@media (max-width: 680px) {
+  .library-source-list li { padding-block: 10px; }
+  .library-source-list strong { font-size: .8rem; }
+  .library-source-list small { font-size: .6rem; }
 }
