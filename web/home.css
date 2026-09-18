@@ -1,4 +1,9 @@
 .home-page {
+  --type-h2: 1.35rem;
+  --type-h3: 1rem;
+  --type-body: .9375rem;
+  --type-support: .8125rem;
+  --type-meta: .75rem;
   color: var(--color-text);
   background:
     radial-gradient(circle at 82% 4%, rgba(70, 48, 111, .08), transparent 24rem),
@@ -140,15 +145,16 @@
 .home-hero {
   position: relative;
   overflow: hidden;
-  min-height: 350px;
+  min-height: 470px;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
   grid-template-areas:
     "visual copy"
     "visual ask";
   align-items: center;
-  gap: var(--space-3) var(--space-10);
-  padding: var(--space-10) var(--space-12);
+  gap: var(--space-5) 56px;
+  padding: 44px 56px;
+  direction: ltr;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   background: linear-gradient(132deg, #f5f0fa 0%, #fff 52%, #fff8ec 100%);
@@ -167,12 +173,15 @@
 
 .hero-visual {
   grid-area: visual;
-  min-height: 230px;
+  min-height: 360px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
+  direction: rtl;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-note {
@@ -216,13 +225,16 @@
   grid-area: copy;
   align-self: end;
   min-width: 0;
+  direction: rtl;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-copy h1 {
   max-width: 760px;
   margin: 0;
   color: var(--color-text);
-  font-size: var(--type-display);
+  font-size: clamp(2.35rem, 3.8vw, 3.1rem);
   line-height: 1.42;
   font-weight: 800;
   letter-spacing: -.02em;
@@ -240,6 +252,9 @@
   grid-area: ask;
   align-self: start;
   min-width: 0;
+  direction: rtl;
+  position: relative;
+  z-index: 1;
 }
 
 .ask-form {
@@ -748,12 +763,12 @@
   .home-footer { width: min(100% - 32px, 1180px); }
 
   .home-hero {
-    grid-template-columns: 210px minmax(0, 1fr);
+    grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
     gap: var(--space-4) var(--space-8);
     padding: var(--space-8);
   }
 
-  .hero-visual { min-height: 210px; }
+  .hero-visual { min-height: 300px; }
   .mascot { width: 136px; height: 120px; }
 }
 
@@ -788,11 +803,16 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "copy"
+      "visual"
       "ask";
     gap: var(--space-5);
     padding: var(--space-8);
+    direction: rtl;
   }
-  .hero-visual { display: none; }
+  .hero-visual {
+    display: flex;
+    min-height: 0;
+  }
   .hero-copy,
   .hero-copy h1,
   .hero-copy p { max-width: 100%; }
@@ -961,18 +981,24 @@
 
 .hero-knowledge-art {
   display: block;
-  width: min(100%, 240px);
+  width: min(100%, 330px);
+  max-height: 390px;
   height: auto;
-  border-radius: 24px;
-  filter: drop-shadow(0 14px 26px rgba(70, 48, 111, .10));
+  object-fit: contain;
+  border-radius: 26px;
+  filter: drop-shadow(0 16px 30px rgba(70, 48, 111, .12));
 }
 
 @media (max-width: 1080px) {
-  .hero-knowledge-art { width: min(100%, 220px); }
+  .hero-knowledge-art { width: min(100%, 285px); max-height: 340px; }
 }
 
-@media (max-width: 720px) {
-  .hero-knowledge-art { width: min(100%, 260px); }
+@media (max-width: 860px) {
+  .hero-knowledge-art { width: min(100%, 260px); max-height: 310px; }
+}
+
+@media (max-width: 520px) {
+  .hero-knowledge-art { width: min(100%, 220px); max-height: 270px; }
 }
 
 .home-footer .app-version {

@@ -1,7 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Estedad:wght@400;500;600;700;800&display=swap');
 
+@font-face {
+  font-family: "YekanLocal";
+  src:
+    local("IRANYekanX"),
+    local("Yekan Bakh"),
+    local("Yekan"),
+    local("B Yekan");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
-  font-family: "Estedad", Tahoma, Arial, sans-serif;
+  font-family: "YekanLocal", "Estedad", Tahoma, Arial, sans-serif;
   color-scheme: light;
 
   /* Brand: deep indigo + warm saffron, intentionally distinct from generic AI teal/blue palettes */
