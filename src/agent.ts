@@ -291,6 +291,26 @@ function modelText(raw: unknown) {
   return "";
 }
 
+function extractJsonStringField(text: string, field: string) {
+  const pattern = new RegExp(
+    `"${field}"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"`,
+    "s"
+  );
+  const match = text.match(pattern);
+  if (!match) return null;
+
+  try {
+    return JSON.parse(`"${match[1]}"`);
+  } catch {
+    return match[1]
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "\r")
+      .replace(/\\t/g, "\t")
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, "\\");
+  }
+}
+
 function parseModelJson(raw: unknown): ParsedModelAnswer {
   const cleaned = modelText(raw)
     .trim()
@@ -310,11 +330,20 @@ function parseModelJson(raw: unknown): ParsedModelAnswer {
       conflict_summary: parsed.conflict_summary ? String(parsed.conflict_summary) : null
     };
   } catch {
+    const salvagedAnswer = extractJsonStringField(cleaned, "answer");
+    const statusMatch = cleaned.match(
+      /"evidence_status"\s*:\s*"(supported|partial|no_evidence|conflict)"/i
+    );
+    const conflictMatch = cleaned.match(/"conflict"\s*:\s*(true|false)/i);
+    const salvagedSummary = extractJsonStringField(cleaned, "conflict_summary");
+
     return {
-      answer: cleaned,
-      evidence_status: null,
-      conflict: false,
-      conflict_summary: null
+      answer: String(salvagedAnswer ?? cleaned).trim(),
+      evidence_status: statusMatch
+        ? statusMatch[1].toLowerCase() as EvidenceStatus
+        : null,
+      conflict: conflictMatch?.[1].toLowerCase() === "true",
+      conflict_summary: salvagedSummary ? String(salvagedSummary) : null
     };
   }
 }
@@ -511,7 +540,7 @@ export async function answerQuestion(env: Env, input: AskRequest) {
 Answer only from the supplied approved evidence. Do not use outside knowledge.
 Distinguish what the evidence supports from inference. If evidence is incomplete, say so.
 If supplied sources materially disagree, set conflict=true and explain the disagreement.
-Use inline citations like [S1], [S2] for factual claims.
+Use inline citations like [S1], [S2] for factual claims. Every factual paragraph or numbered/bulleted item should end with the source label(s) that directly support it.
 If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
 Answer the user's actual question directly; do not restate the question as the opening sentence.
 Select only evidence that directly helps answer the requested task. Ignore retrieved details that are merely about the same broad topic.
@@ -570,7 +599,62 @@ Return JSON only with exactly:
     } as any
   ) as any;
 
-  const parsed = parseModelJson(generated);
+  let parsed = parseModelJson(generated);
+
+  if (
+    chosen.length > 0 &&
+    parsed.answer &&
+    !/\[S\d+\]/.test(parsed.answer)
+  ) {
+    try {
+      const repaired = await env.AI.run(
+        model as any,
+        {
+          messages: [
+            {
+              role: "system",
+              content: system + "\nCitation repair pass: rewrite the draft faithfully, keep only claims supported by the approved evidence, and add the correct [S#] label to every factual paragraph or list item. Do not add new claims."
+            },
+            {
+              role: "user",
+              content: `${user}\n\nDraft that needs citation repair:\n${parsed.answer}`
+            }
+          ],
+          max_tokens: 1000,
+          temperature: 0,
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              type: "object",
+              properties: {
+                answer: { type: "string", maxLength: 6000 },
+                evidence_status: {
+                  type: "string",
+                  enum: ["supported", "partial", "no_evidence", "conflict"]
+                },
+                conflict: { type: "boolean" },
+                conflict_summary: { type: "string" }
+              },
+              required: ["answer", "evidence_status", "conflict", "conflict_summary"]
+            }
+          }
+        } as any
+      ) as any;
+
+      const repairedParsed = parseModelJson(repaired);
+      if (repairedParsed.answer && /\[S\d+\]/.test(repairedParsed.answer)) {
+        parsed = {
+          answer: repairedParsed.answer,
+          evidence_status: repairedParsed.evidence_status ?? parsed.evidence_status,
+          conflict: repairedParsed.conflict || parsed.conflict,
+          conflict_summary: repairedParsed.conflict_summary ?? parsed.conflict_summary
+        };
+      }
+    } catch {
+      // Keep the original grounded draft; do not fabricate citation labels.
+    }
+  }
+
   const distinctChosenSources = new Set(chosen.map((match) => match.source_id)).size;
 
   let modelEvidenceStatus: EvidenceStatus =
@@ -632,10 +716,7 @@ Return JSON only with exactly:
     )
   );
 
-  let groundedAnswer = ensureInlineCitation(
-    cleanedAnswer,
-    chosen.length
-  );
+  let groundedAnswer = cleanedAnswer;
 
   if (evidenceStatus === "conflict") {
     groundedAnswer = ensureConflictCitations(groundedAnswer, chosen);
