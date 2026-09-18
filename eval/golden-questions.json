@@ -88,6 +88,42 @@
     "requires_inline_citation": true
   },
   {
+    "id": "persian-llm-qc-logging",
+    "question": "برای qc و لاگ گذاشتن برای جواب های llm چه باید کرد؟",
+    "expected_status": [
+      "supported",
+      "partial"
+    ],
+    "expected_source_ids": [],
+    "required_answer_terms": [],
+    "required_answer_groups": [
+      [
+        "QC",
+        "ارزیابی",
+        "کیفیت",
+        "evaluation"
+      ],
+      [
+        "لاگ",
+        "logging",
+        "Observability",
+        "observability",
+        "trace",
+        "ردیابی",
+        "مانیتورینگ"
+      ]
+    ],
+    "forbidden_answer_terms": [
+      "async/await",
+      "get_messages",
+      "_parse_response",
+      "class Memory",
+      "evidence_status: supported",
+      "evidence_status:supported"
+    ],
+    "requires_inline_citation": true
+  },
+  {
     "id": "out-of-domain-neptune",
     "question": "What is the recommended orbital insertion burn for a crewed mission to Neptune?",
     "expected_status": [
