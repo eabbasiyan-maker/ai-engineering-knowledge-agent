@@ -957,3 +957,20 @@
   animation: knowledge-spin .8s linear infinite;
 }
 @keyframes knowledge-spin { to { transform: rotate(360deg); } }
+
+
+.hero-knowledge-art {
+  display: block;
+  width: min(100%, 240px);
+  height: auto;
+  border-radius: 24px;
+  filter: drop-shadow(0 14px 26px rgba(70, 48, 111, .10));
+}
+
+@media (max-width: 1080px) {
+  .hero-knowledge-art { width: min(100%, 220px); }
+}
+
+@media (max-width: 720px) {
+  .hero-knowledge-art { width: min(100%, 260px); }
+}
