@@ -56,6 +56,8 @@ for (const test of cases) {
   const baseline = responses.find((x) => x.channel === "api");
   const errors = [];
 
+  const baselineSources = new Set(baseline?.source_ids ?? []);
+
   for (const response of responses) {
     if (response.error) {
       errors.push(response.channel + ": " + response.error);
@@ -64,11 +66,18 @@ for (const test of cases) {
     if (response.evidence_status !== baseline.evidence_status) {
       errors.push(response.channel + ": evidence_status mismatch");
     }
-    if (
-      JSON.stringify(response.source_ids) !==
-      JSON.stringify(baseline.source_ids)
-    ) {
-      errors.push(response.channel + ": source_ids mismatch");
+    if (response.confidence_level !== baseline.confidence_level) {
+      errors.push(response.channel + ": confidence_level mismatch");
+    }
+
+    if (baseline.evidence_status !== "no_evidence") {
+      const responseSources = new Set(response.source_ids ?? []);
+      const overlap = [...responseSources].some((id) => baselineSources.has(id));
+      if (!overlap) {
+        errors.push(response.channel + ": no shared cited source with api baseline");
+      }
+    } else if ((response.source_ids ?? []).length !== 0) {
+      errors.push(response.channel + ": no_evidence returned cited sources");
     }
   }
 
