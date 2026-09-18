@@ -195,7 +195,9 @@ function buildCoverageContext(
   );
   let used = 0;
 
-  const canChoose = (match: RankedMatch) => {
+  const maxChunkChars = requiredNeeds.length >= 4 ? 2600 : 3400;
+
+  const canChoose = (match: RankedMatch, coveragePass = false) => {
     if (chosen.length >= operationalMaxChunks) return false;
     if (match.score < 0.5) return false;
 
@@ -206,12 +208,14 @@ function buildCoverageContext(
     const fromSameSource = chosen.filter(
       (existing) => existing.source_id === match.source_id
     ).length;
-    if (fromSameSource >= 3) return false;
+    // Source diversity is useful when filling spare context, but it must never
+    // prevent a requested information need from receiving evidence.
+    if (!coveragePass && fromSameSource >= 3) return false;
 
     const remaining = maxChars - used;
     if (remaining < 500) return false;
 
-    const clipped = text.length > remaining ? text.slice(0, remaining) : text;
+    const clipped = text.slice(0, Math.min(remaining, maxChunkChars));
     chosen.push({ ...match, text: clipped });
     used += clipped.length;
     return true;
@@ -226,7 +230,7 @@ function buildCoverageContext(
       !chosen.some((existing) => existing.chunk_id === match.chunk_id) &&
       !isNearDuplicateEvidence(match, chosen)
     );
-    if (candidate) canChoose(candidate);
+    if (candidate) canChoose(candidate, true);
   }
 
   // Second pass: fill the remaining context by marginal value. New need
@@ -651,6 +655,25 @@ function splitExplicitQuestionParts(question: string) {
   return Array.from(new Set(parts)).slice(0, 8);
 }
 
+function isQuestionFramingPart(part: string) {
+  const normalized = normalizeEvidenceText(part);
+  if (!normalized) return true;
+
+  const looksLikeContextPrefix =
+    /^(for|برای)\b/i.test(part.trim()) &&
+    /(ai agent|agent|ایجنت|عامل)/i.test(part) &&
+    /(production|پروداکشن|تولید|system|سیستم)/i.test(part);
+
+  const framingOnly =
+    /^(for|برای|درباره|about)\b/i.test(part.trim()) &&
+    normalized.split(" ").length <= 8 &&
+    !conceptRules.some((rule) =>
+      rule.pattern.test(part) || rule.faPattern.test(part)
+    );
+
+  return looksLikeContextPrefix || framingOnly;
+}
+
 function isRelationalQuestion(question: string) {
   return requestsConflictReview(question) ||
     /\b(compare|comparison|difference|different from|versus|vs\.?|complement|relationship|relate|trade-?off|interact|interaction)\b/i.test(question) ||
@@ -692,7 +715,7 @@ function buildInformationNeeds(question: string): InformationNeed[] {
       const coveredByRule = matchedRules.some((rule) =>
         rule.pattern.test(part) || rule.faPattern.test(part)
       );
-      if (!coveredByRule) {
+      if (!coveredByRule && !isQuestionFramingPart(part)) {
         needs.push({
           id: `part-${index + 1}`,
           label: part.slice(0, 90),
@@ -724,8 +747,13 @@ function buildRetrievalPlans(
   needs: InformationNeed[],
   conflictQueries: string[]
 ): RetrievalPlan[] {
+  const globalNeedId =
+    needs.length === 1 && needs[0].id === "primary"
+      ? "primary"
+      : "global";
+
   const plans: RetrievalPlan[] = [{
-    need_id: "global",
+    need_id: globalNeedId,
     query: question,
     kind: "global"
   }];
@@ -742,7 +770,7 @@ function buildRetrievalPlans(
 
   for (const query of conflictQueries) {
     plans.push({
-      need_id: "global",
+      need_id: globalNeedId,
       query,
       kind: "conflict"
     });
@@ -960,6 +988,14 @@ export async function answerQuestion(env: Env, input: AskRequest) {
         ? "supported"
         : "partial";
 
+  const largeMultipart =
+    needs.length >= 4 && !requestsConflictReview(question);
+  const answerLanguage = looksPersian(question) ? "Persian (Farsi)" : "English";
+  const outputContract = largeMultipart
+    ? "Return only the final answer text with inline [S#] citations. Do not return JSON or metadata."
+    : `Return JSON only with exactly:
+{"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
+
   const system = `You are the AI Engineering Knowledge Agent.
 Answer only from the supplied approved evidence. Do not use outside knowledge.
 Distinguish what the evidence supports from inference. If evidence is incomplete, say so.
@@ -972,6 +1008,9 @@ Before drafting, identify every explicit part of the user's request. If the ques
 The user's required information needs are listed before the evidence. Treat each listed need as a distinct requested part.
 Cover every need marked "evidence: available". If a need is marked "evidence: missing", state that the approved knowledge base does not provide enough direct evidence for that part and do not guess.
 Do not let a highly relevant source for one need crowd out or substitute for another requested need.
+For every covered information need, include at least one concrete mechanism, field, metric, validation criterion, or operational practice that is explicitly supported by its evidence. Do not fill a section with generic phrases such as "use monitoring" or "use quality control" when the evidence provides more specific detail.
+For multi-part questions, use one compact section or bullet group per requested need and avoid repeating the same generic recommendation across sections.
+For an explicit conflict review, compare the definitions' inclusion and exclusion criteria. If one approved source counts a class of system as the concept while another source explicitly excludes that class under its definition, treat that as a material definitional conflict even if the sources share some properties. Do not smooth an explicit inclusion/exclusion disagreement into merely complementary emphasis.
 For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets per major requested part when the evidence supports it.
 Match answer depth to the question.
 For broad, explanatory, comparative, or multi-part questions, normally use about 250-500 words when the evidence supports that depth.
@@ -986,41 +1025,57 @@ If the evidence is only topically related but does not support the requested fac
 For a single specific fact request (for example an exact score, benchmark result, percentage, date, count, version, or named experiment), if that exact fact is absent from the evidence, use evidence_status="no_evidence", not "partial".
 Use evidence_status="partial" only when the user's question has multiple meaningful parts and the evidence directly supports at least one part but not all parts.
 If sources materially disagree, use evidence_status="conflict".
-Return JSON only with exactly:
-{"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
+Always answer in the requested answer language.
+${outputContract}`;
 
-  const user = `Question:\n${question}\n\nRequired information needs:\n${needSummary}\n\nApproved evidence:\n${context}`;
+  const user = `Question:\n${question}\n\nAnswer language: ${answerLanguage}\n\nRequired information needs:\n${needSummary}\n\nApproved evidence:\n${context}`;
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
+
+  const generationRequest: any = {
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user }
+    ],
+    max_tokens: largeMultipart ? 1400 : 1000,
+    temperature: 0.1
+  };
+
+  if (!largeMultipart) {
+    generationRequest.response_format = {
+      type: "json_schema",
+      json_schema: {
+        type: "object",
+        properties: {
+          answer: { type: "string", maxLength: 6000 },
+          evidence_status: {
+            type: "string",
+            enum: ["supported", "partial", "no_evidence", "conflict"]
+          },
+          conflict: { type: "boolean" },
+          conflict_summary: { type: "string" }
+        },
+        required: ["answer", "evidence_status", "conflict", "conflict_summary"]
+      }
+    };
+  }
 
   const generated = await env.AI.run(
     model as any,
-    {
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user }
-      ],
-      max_tokens: 1000,
-      temperature: 0.1,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          type: "object",
-          properties: {
-            answer: { type: "string", maxLength: 6000 },
-            evidence_status: {
-              type: "string",
-              enum: ["supported", "partial", "no_evidence", "conflict"]
-            },
-            conflict: { type: "boolean" },
-            conflict_summary: { type: "string" }
-          },
-          required: ["answer", "evidence_status", "conflict", "conflict_summary"]
-        }
-      }
-    } as any
+    generationRequest
   ) as any;
 
-  let parsed = parseModelJson(generated);
+  let parsed: ParsedModelAnswer = largeMultipart
+    ? {
+        answer: modelText(generated)
+          .trim()
+          .replace(/^\`\`\`(?:text|markdown)?\\s*/i, "")
+          .replace(/\`\`\`$/i, "")
+          .trim(),
+        evidence_status: initialEvidenceStatus,
+        conflict: false,
+        conflict_summary: null
+      }
+    : parseModelJson(generated);
 
   if (
     chosen.length > 0 &&
@@ -1052,7 +1107,14 @@ Return JSON only with exactly:
         .replace(/\`\`\`$/i, "")
         .trim();
 
-      if (repairedText && /\[S\d+\]/.test(repairedText)) {
+      const preservesSubstance =
+        repairedText.length >= Math.max(80, parsed.answer.length * 0.65);
+
+      if (
+        repairedText &&
+        /\[S\d+\]/.test(repairedText) &&
+        preservesSubstance
+      ) {
         parsed = {
           ...parsed,
           answer: repairedText
