@@ -349,6 +349,13 @@ function dedupeRepeatedSentences(answer: string) {
     .trim();
 }
 
+function cleanAnswerArtifacts(answer: string) {
+  return answer
+    .replace(/\s*evidence[_ ]status\s*[:=]\s*(?:supported|partial|no_evidence|conflict)\s*$/i, "")
+    .replace(/\s*conflict\s*[:=]\s*(?:true|false)\s*$/i, "")
+    .trim();
+}
+
 function requestsConflictReview(question: string) {
   return /\b(conflict|conflicting|disagree|disagreement|different perspectives|different views|opposing|both perspectives)\b/i.test(question) ||
     /(اختلاف|متعارض|تعارض|دیدگاه متفاوت|هر دو دیدگاه|مخالف)/.test(question);
@@ -383,6 +390,30 @@ function expandQualityQueries(question: string) {
   return [
     `${question}\nLLM response evaluation quality control validation groundedness correctness relevance completeness agent evaluator judge reliability`
   ];
+}
+
+function expandObservabilityQueries(question: string) {
+  const isObservabilityQuestion =
+    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
+    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
+
+  if (!isObservabilityQuestion) return [] as string[];
+
+  return [
+    `${question}\nLLM agent observability logging tracing telemetry audit request response prompt context model latency token usage cost errors retries evaluation production monitoring`,
+    `${question}\nproduction AI observability trace logs model input output retrieval sources tool execution latency tokens errors request id monitoring`
+  ];
+}
+
+function questionAsksQualityAndObservability(question: string) {
+  const quality =
+    /\b(qc|quality control|quality assurance|evaluation|evaluator|validation|verification)\b/i.test(question) ||
+    /(کنترل کیفیت|تضمین کیفیت|ارزیابی|اعتبارسنجی|کیفیت پاسخ)/.test(question);
+  const observability =
+    /\b(log|logs|logging|trace|tracing|telemetry|observability|monitoring|audit)\b/i.test(question) ||
+    /(لاگ|لاگینگ|مانیتور|مانیتورینگ|ردیابی|تریس|مشاهده.?پذیری|ممیزی)/.test(question);
+
+  return quality && observability;
 }
 
 async function expandConflictQueries(env: Env, question: string) {
@@ -445,8 +476,9 @@ export async function answerQuestion(env: Env, input: AskRequest) {
 
   const conflictQueries = await expandConflictQueries(env, question);
   const qualityQueries = expandQualityQueries(question);
+  const observabilityQueries = expandObservabilityQueries(question);
   const retrievalQueries = Array.from(
-    new Set([question, ...qualityQueries, ...conflictQueries])
+    new Set([question, ...qualityQueries, ...observabilityQueries, ...conflictQueries])
   );
   const retrievalGroups = await Promise.all(
     retrievalQueries.map((query) => searchKnowledge(env, query, requestedTopK))
@@ -483,7 +515,11 @@ Use inline citations like [S1], [S2] for factual claims.
 If evidence_status is conflict, the answer MUST explicitly cite at least two distinct source labels representing the different positions. Never report a conflict using only one cited source.
 Answer the user's actual question directly; do not restate the question as the opening sentence.
 Select only evidence that directly helps answer the requested task. Ignore retrieved details that are merely about the same broad topic.
-For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets when the evidence supports it.
+Before drafting, identify every explicit part of the user's request. If the question asks for multiple things, cover every supported part separately; never answer only the first part.
+When a question asks about both response quality/evaluation and logging/observability, structure the answer into two distinct parts: (1) QC/evaluation and (2) logging/observability.
+Do not treat LLM-as-Judge and evaluator LLM as separate techniques; synthesize them as one family.
+For logging/observability, report only fields and practices actually supported by the supplied evidence. If one requested part lacks direct evidence, say so and use evidence_status="partial".
+For "how", process, or implementation questions, prefer a short structured answer with 3-6 steps or bullets per major requested part when the evidence supports it.
 Match answer depth to the question.
 For broad, explanatory, comparative, or multi-part questions, normally use about 250-500 words when the evidence supports that depth.
 For a simple single-fact question, stay brief.
@@ -500,7 +536,10 @@ If sources materially disagree, use evidence_status="conflict".
 Return JSON only with exactly:
 {"answer":"string","evidence_status":"supported|partial|no_evidence|conflict","conflict":false,"conflict_summary":null}`;
 
-  const user = `Question:\n${question}\n\nApproved evidence:\n${context}`;
+  const multipartHint = questionAsksQualityAndObservability(question)
+    ? "\nThis question has two explicit parts: quality/evaluation and logging/observability. Cover both separately from the evidence."
+    : "";
+  const user = `Question:\n${question}${multipartHint}\n\nApproved evidence:\n${context}`;
   const model = env.GENERATION_MODEL || "@cf/meta/llama-3.1-8b-instruct-fast";
 
   const generated = await env.AI.run(
@@ -587,8 +626,10 @@ Return JSON only with exactly:
     retrieval_score: Number(m.score.toFixed(4))
   }));
 
-  const cleanedAnswer = dedupeRepeatedSentences(
-    parsed.answer || noEvidenceAnswer(question)
+  const cleanedAnswer = cleanAnswerArtifacts(
+    dedupeRepeatedSentences(
+      parsed.answer || noEvidenceAnswer(question)
+    )
   );
 
   let groundedAnswer = ensureInlineCitation(

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#fbfaf7" />
-  <meta name="app-version" content="0.3.6" />
+  <meta name="app-version" content="0.3.7" />
   <title>AI.Knowledge — پرسش از کتابخانه مهندسی هوش مصنوعی</title>
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
@@ -39,7 +39,7 @@
   <main class="home-shell" id="main-content" tabindex="-1">
     <section class="home-hero" id="ask" aria-labelledby="hero-title">
       <div class="hero-visual" aria-hidden="true">
-        <img class="hero-knowledge-art" data-hero-version="0.3.6" src="/hero-ai-knowledge.jpg?v=0.3.6" alt="" width="400" height="400" loading="eager" decoding="async" />
+        <img class="hero-knowledge-art" data-hero-version="0.3.7" src="/hero-ai-knowledge.jpg?v=0.3.7" alt="" width="400" height="400" loading="eager" decoding="async" />
       </div>
 
       <div class="hero-copy">
@@ -117,6 +117,37 @@
         </div>
         <div id="sources" class="sources"></div>
       </section>
+    </section>
+
+    <section class="discover-section" id="questions" aria-labelledby="questions-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="questions-title">اگر هنوز نمی‌دونی از کجا شروع کنی</h2>
+          <p>یکی از سؤال‌های پرتکرار یا نمونه سؤال‌های عمومی اخیر را انتخاب کن؛ سؤال یکتای کاربران در این بخش منتشر نمی‌شود.</p>
+        </div>
+      </div>
+
+      <div class="questions-grid">
+        <article class="question-panel">
+          <div class="panel-head"><div><span class="panel-icon hot" aria-hidden="true">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر تکرار شده‌اند</p></div></div></div>
+          <div id="frequent-questions" class="question-list">
+            <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
+            <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
+            <button type="button" data-question="چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟">چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟</button>
+            <button type="button" data-question="Reflection چه فرقی با Planning دارد؟">Reflection چه فرقی با Planning دارد؟</button>
+          </div>
+        </article>
+
+        <article class="question-panel">
+          <div class="panel-head"><div><span class="panel-icon recent" aria-hidden="true">◷</span><div><h3>نمونه سؤال‌های اخیر</h3><p>نمونه‌های عمومی و امن از سؤال‌های جدیدتر</p></div></div></div>
+          <div id="recent-questions" class="question-list">
+            <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
+            <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
+            <button type="button" data-question="چطور Hallucination را کمتر کنیم؟">چطور Hallucination را کمتر کنیم؟</button>
+            <button type="button" data-question="اولین قدم برای ساخت Agent چیست؟">اولین قدم برای ساخت Agent چیست؟</button>
+          </div>
+        </article>
+      </div>
     </section>
 
     <section class="discover-section" id="topics" aria-labelledby="topics-title">
@@ -269,37 +300,6 @@
       </div>
     </section>
 
-    <section class="discover-section" id="questions" aria-labelledby="questions-title">
-      <div class="section-heading">
-        <div>
-          <h2 id="questions-title">اگر هنوز نمی‌دونی از کجا شروع کنی</h2>
-          <p>یکی از سؤال‌های پرتکرار یا نمونه سؤال‌های عمومی اخیر را انتخاب کن؛ سؤال یکتای کاربران در این بخش منتشر نمی‌شود.</p>
-        </div>
-      </div>
-
-      <div class="questions-grid">
-        <article class="question-panel">
-          <div class="panel-head"><div><span class="panel-icon hot" aria-hidden="true">●</span><div><h3>سؤال‌های پرتکرار</h3><p>سؤال‌هایی که بیشتر تکرار شده‌اند</p></div></div></div>
-          <div id="frequent-questions" class="question-list">
-            <button type="button" data-question="RAG دقیقاً چیست و کجا استفاده می‌شود؟">RAG دقیقاً چیست و کجا استفاده می‌شود؟</button>
-            <button type="button" data-question="یک AI Agent خوب چه اجزایی دارد؟">یک AI Agent خوب چه اجزایی دارد؟</button>
-            <button type="button" data-question="چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟">چطور کیفیت پاسخ‌های مدل را ارزیابی کنیم؟</button>
-            <button type="button" data-question="Reflection چه فرقی با Planning دارد؟">Reflection چه فرقی با Planning دارد؟</button>
-          </div>
-        </article>
-
-        <article class="question-panel">
-          <div class="panel-head"><div><span class="panel-icon recent" aria-hidden="true">◷</span><div><h3>نمونه سؤال‌های اخیر</h3><p>نمونه‌های عمومی و امن از سؤال‌های جدیدتر</p></div></div></div>
-          <div id="recent-questions" class="question-list">
-            <button type="button" data-question="MCP چیست و چه کاربردی دارد؟">MCP چیست و چه کاربردی دارد؟</button>
-            <button type="button" data-question="چه زمانی از Multi-Agent استفاده کنیم؟">چه زمانی از Multi-Agent استفاده کنیم؟</button>
-            <button type="button" data-question="چطور Hallucination را کمتر کنیم؟">چطور Hallucination را کمتر کنیم؟</button>
-            <button type="button" data-question="اولین قدم برای ساخت Agent چیست؟">اولین قدم برای ساخت Agent چیست؟</button>
-          </div>
-        </article>
-      </div>
-    </section>
-
     <section class="books-section" id="books" aria-labelledby="books-title">
       <div class="books-head">
         <div>
@@ -364,7 +364,7 @@
 
   <footer class="home-footer">
     <span>AI.Knowledge — دستیار تخصصی یادگیری مهندسی هوش مصنوعی، توسعه‌یافته توسط تیم Communication Platform.</span>
-    <span class="app-version" aria-label="نسخه برنامه">نسخه ۰.۳.۶</span>
+    <span class="app-version" aria-label="نسخه برنامه">نسخه ۰.۳.۷</span>
   </footer>
 
   <script src="/app.js" defer></script>
