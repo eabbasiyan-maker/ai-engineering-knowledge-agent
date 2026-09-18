@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#fbfaf7" />
+  <meta name="app-version" content="0.3.0" />
   <title>AI.Knowledge — پرسش از کتابخانه مهندسی هوش مصنوعی</title>
   <meta name="description" content="پرسش از کتابخانه مهندسی هوش مصنوعی با پاسخ مبتنی بر منابع تأییدشده." />
   <link rel="stylesheet" href="/styles.css" />
@@ -29,7 +30,6 @@
         <a href="#topics">حوزه‌های دانش</a>
         <a href="#questions">سؤال‌ها</a>
         <a href="#books">کتاب‌ها</a>
-        <a href="#trust">اعتبار پاسخ</a>
       </nav>
 
       <a class="admin-link" href="/admin"><span aria-hidden="true">⚙</span> پنل مدیریت</a>
@@ -39,11 +39,7 @@
   <main class="home-shell" id="main-content" tabindex="-1">
     <section class="home-hero" id="ask" aria-labelledby="hero-title">
       <div class="hero-visual" aria-hidden="true">
-        <div class="hero-note">سؤال کن<br>یاد بگیر<br>پیشرفت کن!</div>
-        <div class="mascot">
-          <div class="mascot-head"><span>⌣</span><span>⌣</span></div>
-          <div class="mascot-book">📘</div>
-        </div>
+        <img class="hero-knowledge-art" src="/hero-ai-knowledge.webp?v=0.3.0" alt="" width="520" height="650" loading="eager" decoding="async" />
       </div>
 
       <div class="hero-copy">
@@ -58,11 +54,6 @@
           <span id="question-help" class="visually-hidden">سؤال را بنویسید و دکمه پرسیدن را انتخاب کنید.</span>
           <button id="ask-button" class="primary ask-submit" type="submit"><span id="ask-button-label">پرسیدن</span> <span aria-hidden="true">◁</span></button>
         </form>
-        <div class="suggestion-chips" aria-label="نمونه سؤال‌ها">
-          <button type="button" data-question="RAG چیست و چه زمانی از آن استفاده می‌کنیم؟">RAG چیست؟</button>
-          <button type="button" data-question="یک AI Agent چگونه کار می‌کند؟">یک Agent چگونه کار می‌کند؟</button>
-          <button type="button" data-question="برای نوشتن پرامپت بهتر از چه روشی استفاده کنیم؟">بهترین روش پرامپت‌نویسی چیست؟</button>
-        </div>
       </section>
     </section>
 
@@ -106,7 +97,7 @@
 
         <div id="badges" class="badges" aria-label="وضعیت پاسخ"></div>
         <p id="evidence-summary" class="evidence-summary"></p>
-        <div id="answer" class="answer-text" dir="auto"></div>
+        <div id="answer" class="answer-text" dir="rtl"></div>
 
         <div id="feedback" class="feedback" aria-label="بازخورد درباره پاسخ">
           <span>این پاسخ مفید بود؟</span>
@@ -235,15 +226,9 @@
       </div>
     </section>
 
-    <section id="trust" class="trust-strip" aria-labelledby="trust-title">
-      <div><h2 id="trust-title">چرا می‌شود پاسخ‌ها را بررسی کرد؟</h2><p>هر پاسخ با وضعیت شواهد و منابع استفاده‌شده نمایش داده می‌شود؛ اگر مدرک کافی نداشته باشیم، Agent باید صریح بگوید.</p></div>
-      <div class="trust-badges" aria-label="وضعیت‌های ممکن شواهد"><span>✓ مستند</span><span>! مدرک ناکافی</span><span>≠ اختلاف منابع</span></div>
-    </section>
-
     <section class="stats-strip" aria-label="وضعیت کتابخانه">
       <div class="stat-item"><span class="stat-icon" aria-hidden="true">▤</span><div><strong id="stat-books">۱۱ کتاب فعال</strong><small>منابع معتبر و منتخب</small></div></div>
       <div class="stat-item"><span class="stat-icon" aria-hidden="true">▰</span><div><strong id="stat-chunks">۳۳۱۷ بخش دانش</strong><small>قطعات دانش قابل جست‌وجو</small></div></div>
-      <div class="stat-item"><span class="stat-icon" aria-hidden="true">□</span><div><strong>آخرین بروزرسانی</strong><small id="stat-updated">—</small></div></div>
     </section>
 
     <section class="books-section" id="books" aria-labelledby="books-title">
@@ -317,8 +302,15 @@
     </section>
   </main>
 
+  <div class="last-updated-row" aria-label="آخرین بروزرسانی کتابخانه">
+    <span aria-hidden="true">□</span>
+    <strong>آخرین بروزرسانی:</strong>
+    <span id="stat-updated">—</span>
+  </div>
+
   <footer class="home-footer">
-    <span>AI.Knowledge — دستیار تخصصی یادگیری مهندسی هوش مصنوعی، توسعه‌یافته توسط تیم Communication Platform. <a href="/admin">پنل مدیریت</a></span>
+    <span>AI.Knowledge — دستیار تخصصی یادگیری مهندسی هوش مصنوعی، توسعه‌یافته توسط تیم Communication Platform.</span>
+    <span class="app-version" aria-label="نسخه برنامه">نسخه ۰.۳.۰</span>
   </footer>
 
   <script src="/app.js" defer></script>

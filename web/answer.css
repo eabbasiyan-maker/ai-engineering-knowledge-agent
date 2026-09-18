@@ -92,6 +92,9 @@
   font-size: var(--type-body);
   line-height: 2.05;
   white-space: normal;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: plaintext;
 }
 
 .answer-text p {
@@ -432,4 +435,18 @@
   .state-actions .ghost {
     width: 100%;
   }
+}
+
+.answer-text p,
+.answer-text li,
+.answer-text h3,
+.answer-text h4 {
+  direction: rtl;
+  text-align: right;
+}
+.answer-text code,
+.answer-text pre {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
 }

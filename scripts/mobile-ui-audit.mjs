@@ -26,7 +26,7 @@ const checks = [
   ["discovery collapses", discovery.includes(".learning-paths,\n  .topic-groups { grid-template-columns: 1fr; }")],
   ["library collapses", library.includes(".library-overview,\n  .featured-books { grid-template-columns: 1fr; }")],
   ["mobile controls use 48px token", styles.includes("--control-height: 48px")],
-  ["mobile home touch targets", styles.includes(".home-page .suggestion-chips button") && styles.includes("min-height: 44px")],
+  ["mobile home touch targets", home.includes(".question-list button") && home.includes("min-height: 48px")],
   ["long mixed-direction text wraps", styles.includes("overflow-wrap: anywhere")],
   ["reduced motion supported", styles.includes("prefers-reduced-motion: reduce")]
 ];

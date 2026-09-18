@@ -47,7 +47,8 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "id=\"trust\""
+            "name=\"app-version\" content=\"0.3.0\"",
+            "hero-ai-knowledge.webp?v=0.3.0"
           ];
           let last = null;
 
@@ -94,13 +95,20 @@ jobs:
             "id=\"topics\"",
             "id=\"questions\"",
             "id=\"books\"",
-            "id=\"trust\"",
+            "name=\"app-version\" content=\"0.3.0\"",
+            "hero-ai-knowledge.webp?v=0.3.0",
             "href=\"/answer.css\"",
             "href=\"/discovery.css\"",
             "href=\"/library.css\""
           ];
           if (!homeRes.ok || homeMarkers.some(marker => !homeHtml.includes(marker))) {
             throw new Error("Worker homepage UI is stale or unavailable");
+          }
+
+          const heroRes = await fetch(base + "/hero-ai-knowledge.webp?deploy=" + cacheBust, { cache: "no-store" });
+          const heroType = heroRes.headers.get("content-type") || "";
+          if (!heroRes.ok || !heroType.includes("image/")) {
+            throw new Error("Versioned hero asset is unavailable from Worker");
           }
 
           const cssRes = await fetch(base + "/styles.css?deploy=" + cacheBust, { cache: "no-store" });
