@@ -718,6 +718,15 @@ Return JSON only with exactly:
 
   let groundedAnswer = cleanedAnswer;
 
+  if (
+    groundedAnswer &&
+    !/\[S\d+\]/.test(groundedAnswer) &&
+    chosen.length > 0 &&
+    distinctChosenSources === 1
+  ) {
+    groundedAnswer = groundedAnswer + " [S1]";
+  }
+
   if (evidenceStatus === "conflict") {
     groundedAnswer = ensureConflictCitations(groundedAnswer, chosen);
   }
